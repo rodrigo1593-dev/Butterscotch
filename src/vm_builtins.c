@@ -691,6 +691,18 @@ static RValue builtinRoomGotoNext(VMContext* ctx, [[maybe_unused]] RValue* args,
     return RValue_makeUndefined();
 }
 
+static RValue builtinRoomGotoPrevious(VMContext* ctx, [[maybe_unused]] RValue* args, [[maybe_unused]] int32_t argCount) {
+    Runner* runner = requireNotNullMessage(ctx->runner, "VM: room_goto_previous called but no runner!");
+
+    int32_t previousPos = runner->currentRoomOrderPosition - 1;
+    if (previousPos >= 0) {
+        runner->pendingRoom = runner->dataWin->gen8.roomOrder[previousPos];
+    } else {
+        fprintf(stderr, "VM: room_goto_previous - already at first room!\n");
+    }
+    return RValue_makeUndefined();
+}
+
 static RValue builtinRoomGoto(VMContext* ctx, RValue* args, int32_t argCount) {
     if (1 > argCount) return RValue_makeUndefined();
     Runner* runner = requireNotNullMessage(ctx->runner, "VM: room_goto called but no runner!");
@@ -1483,6 +1495,7 @@ void VMBuiltins_registerAll(void) {
 
     // Room
     registerBuiltin("room_goto_next", builtinRoomGotoNext);
+    registerBuiltin("room_goto_previous", builtinRoomGotoPrevious);
     registerBuiltin("room_goto", builtinRoomGoto);
 
     // Variables
