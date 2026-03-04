@@ -473,6 +473,13 @@ int main(int argc, char* argv[]) {
                 fprintf(stderr, "Debug: Dumping runner state at frame %d\n", runner->frameCount);
                 Runner_dumpState(runner);
             }
+
+            if (RunnerKeyboard_checkPressed(runner->keyboard, VK_F11)) {
+                fprintf(stderr, "Debug: Dumping runner state at frame %d\n", runner->frameCount);
+                char* json = Runner_dumpStateJson(runner);
+                printf("%s", json);
+                free(json);
+            }
         }
 
         // Run the game step if the game is paused
