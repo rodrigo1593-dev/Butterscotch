@@ -13,6 +13,9 @@
 #include "text_utils.h"
 #include "collision.h"
 
+#define MAX_VIEWS 8
+#define MAX_BACKGROUNDS 8
+
 // ===[ BUILTIN FUNCTION REGISTRY ]===
 typedef struct {
     char* key;
@@ -184,31 +187,31 @@ RValue VMBuiltins_getVariable(VMContext* ctx, const char* name, int32_t arrayInd
         if (strcmp(name, "room_persistent") == 0) return RValue_makeBool(runner->currentRoom->persistent);
         if (strcmp(name, "view_current") == 0) return RValue_makeReal(0.0);
         if (strcmp(name, "view_xview") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) {
+            if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
                 return RValue_makeReal((double) runner->currentRoom->views[arrayIndex].viewX);
             }
             return RValue_makeReal(0.0);
         }
         if (strcmp(name, "view_yview") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) {
+            if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
                 return RValue_makeReal((double) runner->currentRoom->views[arrayIndex].viewY);
             }
             return RValue_makeReal(0.0);
         }
         if (strcmp(name, "view_wview") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) {
+            if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
                 return RValue_makeReal((double) runner->currentRoom->views[arrayIndex].viewWidth);
             }
             return RValue_makeReal(0.0);
         }
         if (strcmp(name, "view_hview") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) {
+            if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
                 return RValue_makeReal((double) runner->currentRoom->views[arrayIndex].viewHeight);
             }
             return RValue_makeReal(0.0);
         }
         if (strcmp(name, "view_object") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) {
+            if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
                 return RValue_makeReal((double) runner->currentRoom->views[arrayIndex].objectId);
             }
             return RValue_makeReal(-4.0);
@@ -216,27 +219,27 @@ RValue VMBuiltins_getVariable(VMContext* ctx, const char* name, int32_t arrayInd
 
         // Background properties
         if (strcmp(name, "background_visible") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) return RValue_makeBool(runner->backgrounds[arrayIndex].visible);
+            if (arrayIndex >= 0 && MAX_BACKGROUNDS > arrayIndex) return RValue_makeBool(runner->backgrounds[arrayIndex].visible);
             return RValue_makeBool(false);
         }
         if (strcmp(name, "background_index") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].backgroundIndex);
+            if (arrayIndex >= 0 && MAX_BACKGROUNDS > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].backgroundIndex);
             return RValue_makeReal(-1.0);
         }
         if (strcmp(name, "background_x") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].x);
+            if (arrayIndex >= 0 && MAX_BACKGROUNDS > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].x);
             return RValue_makeReal(0.0);
         }
         if (strcmp(name, "background_y") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].y);
+            if (arrayIndex >= 0 && MAX_BACKGROUNDS > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].y);
             return RValue_makeReal(0.0);
         }
         if (strcmp(name, "background_hspeed") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].speedX);
+            if (arrayIndex >= 0 && MAX_BACKGROUNDS > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].speedX);
             return RValue_makeReal(0.0);
         }
         if (strcmp(name, "background_vspeed") == 0) {
-            if (arrayIndex >= 0 && 8 > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].speedY);
+            if (arrayIndex >= 0 && MAX_BACKGROUNDS > arrayIndex) return RValue_makeReal((double) runner->backgrounds[arrayIndex].speedY);
             return RValue_makeReal(0.0);
         }
         if (strcmp(name, "background_width") == 0) {
@@ -371,31 +374,31 @@ void VMBuiltins_setVariable(VMContext* ctx, const char* name, RValue val, int32_
 
     // View properties
     if (strcmp(name, "view_xview") == 0) {
-        if (arrayIndex >= 0 && 8 > arrayIndex) {
+        if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
             runner->currentRoom->views[arrayIndex].viewX = RValue_toInt32(val);
         }
         return;
     }
     if (strcmp(name, "view_yview") == 0) {
-        if (arrayIndex >= 0 && 8 > arrayIndex) {
+        if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
             runner->currentRoom->views[arrayIndex].viewY = RValue_toInt32(val);
         }
         return;
     }
     if (strcmp(name, "view_wview") == 0) {
-        if (arrayIndex >= 0 && 8 > arrayIndex) {
+        if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
             runner->currentRoom->views[arrayIndex].viewWidth = RValue_toInt32(val);
         }
         return;
     }
     if (strcmp(name, "view_hview") == 0) {
-        if (arrayIndex >= 0 && 8 > arrayIndex) {
+        if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
             runner->currentRoom->views[arrayIndex].viewHeight = RValue_toInt32(val);
         }
         return;
     }
     if (strcmp(name, "view_object") == 0) {
-        if (arrayIndex >= 0 && 8 > arrayIndex) {
+        if (arrayIndex >= 0 && MAX_VIEWS > arrayIndex) {
             runner->currentRoom->views[arrayIndex].objectId = RValue_toInt32(val);
         }
         return;
