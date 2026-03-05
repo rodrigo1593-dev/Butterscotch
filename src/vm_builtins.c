@@ -754,6 +754,47 @@ static RValue builtinPointDistance([[maybe_unused]] VMContext* ctx, RValue* args
     return RValue_makeReal(sqrt(dx * dx + dy * dy));
 }
 
+static RValue builtinDistanceToPoint(VMContext* ctx, RValue* args, int32_t argCount) {
+    if (2 > argCount) return RValue_makeReal(0.0);
+    double px = RValue_toReal(args[0]);
+    double py = RValue_toReal(args[1]);
+
+    Instance* inst = ctx->currentInstance;
+    int32_t sprIdx = (inst->maskIndex >= 0) ? inst->maskIndex : inst->spriteIndex;
+    if (0 > sprIdx || (uint32_t) sprIdx >= ctx->dataWin->sprt.count) {
+        return RValue_makeReal(0.0);
+    }
+
+    Sprite* spr = &ctx->dataWin->sprt.sprites[sprIdx];
+
+    // Compute bounding box (no-rotation path)
+    double bboxLeft = inst->x + inst->imageXscale * (spr->marginLeft - spr->originX);
+    double bboxRight = inst->x + inst->imageXscale * ((spr->marginRight + 1) - spr->originX);
+    if (bboxLeft > bboxRight) {
+        double t = bboxLeft;
+        bboxLeft = bboxRight;
+        bboxRight = t;
+    }
+
+    double bboxTop = inst->y + inst->imageYscale * (spr->marginTop - spr->originY);
+    double bboxBottom = inst->y + inst->imageYscale * ((spr->marginBottom + 1) - spr->originY);
+    if (bboxTop > bboxBottom) {
+        double t = bboxTop;
+        bboxTop = bboxBottom;
+        bboxBottom = t;
+    }
+
+    // Distance from point to nearest edge of bbox (0 if inside)
+    double xd = 0.0;
+    double yd = 0.0;
+    if (px > bboxRight)  xd = px - bboxRight;
+    if (px < bboxLeft)   xd = px - bboxLeft;
+    if (py > bboxBottom) yd = py - bboxBottom;
+    if (py < bboxTop)    yd = py - bboxTop;
+
+    return RValue_makeReal(sqrt(xd * xd + yd * yd));
+}
+
 static RValue builtinPointDirection([[maybe_unused]] VMContext* ctx, RValue* args, int32_t argCount) {
     if (4 > argCount) return RValue_makeReal(0.0);
     double dx = RValue_toReal(args[2]) - RValue_toReal(args[0]);
@@ -2208,6 +2249,7 @@ void VMBuiltins_registerAll(void) {
     registerBuiltin("lerp", builtinLerp);
     registerBuiltin("point_distance", builtinPointDistance);
     registerBuiltin("point_direction", builtinPointDirection);
+    registerBuiltin("distance_to_point", builtinDistanceToPoint);
     registerBuiltin("lengthdir_x", builtinLengthdir_x);
     registerBuiltin("lengthdir_y", builtinLengthdir_y);
 
