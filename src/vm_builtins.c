@@ -1976,7 +1976,32 @@ static RValue builtin_draw_self(VMContext* ctx, [[maybe_unused]] RValue* args, [
     return RValue_makeUndefined();
 }
 
-STUB_RETURN_UNDEFINED(draw_line)
+// draw_line(x1, y1, x2, y2)
+static RValue builtin_draw_line(VMContext* ctx, RValue* args, [[maybe_unused]] int32_t argCount) {
+    Runner* runner = (Runner*) ctx->runner;
+    if (runner->renderer != nullptr) {
+        float x1 = (float) RValue_toReal(args[0]);
+        float y1 = (float) RValue_toReal(args[1]);
+        float x2 = (float) RValue_toReal(args[2]);
+        float y2 = (float) RValue_toReal(args[3]);
+        runner->renderer->vtable->drawLine(runner->renderer, x1, y1, x2, y2, 1.0f, runner->renderer->drawColor, runner->renderer->drawAlpha);
+    }
+    return RValue_makeUndefined();
+}
+
+// draw_line_width(x1, y1, x2, y2, w)
+static RValue builtin_draw_line_width(VMContext* ctx, RValue* args, [[maybe_unused]] int32_t argCount) {
+    Runner* runner = (Runner*) ctx->runner;
+    if (runner->renderer != nullptr) {
+        float x1 = (float) RValue_toReal(args[0]);
+        float y1 = (float) RValue_toReal(args[1]);
+        float x2 = (float) RValue_toReal(args[2]);
+        float y2 = (float) RValue_toReal(args[3]);
+        float w = (float) RValue_toReal(args[4]);
+        runner->renderer->vtable->drawLine(runner->renderer, x1, y1, x2, y2, w, runner->renderer->drawColor, runner->renderer->drawAlpha);
+    }
+    return RValue_makeUndefined();
+}
 
 static RValue builtin_draw_set_colour(VMContext* ctx, RValue* args, [[maybe_unused]] int32_t argCount) {
     Runner* runner = (Runner*) ctx->runner;
@@ -2786,6 +2811,7 @@ void VMBuiltins_registerAll(void) {
     registerBuiltin("background_get_height", builtinBackgroundGetHeight);
     registerBuiltin("draw_self", builtin_draw_self);
     registerBuiltin("draw_line", builtin_draw_line);
+    registerBuiltin("draw_line_width", builtin_draw_line_width);
     registerBuiltin("draw_set_colour", builtin_draw_set_colour);
     registerBuiltin("draw_get_colour", builtin_draw_get_colour);
     registerBuiltin("draw_get_color", builtin_draw_get_color);
