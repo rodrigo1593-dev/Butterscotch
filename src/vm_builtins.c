@@ -1677,6 +1677,22 @@ static RValue builtinInstanceChange(VMContext* ctx, RValue* args, int32_t argCou
     return RValue_makeUndefined();
 }
 
+static RValue builtinInstanceDeactivateAll(VMContext* ctx, RValue* args, int32_t argCount) {
+    if (1 > argCount) return RValue_makeUndefined();
+    bool notme = RValue_toBool(args[0]);
+
+    int instances = arrlen(ctx->runner->instances);
+    repeat(instances, i) {
+        Instance* instance = ctx->runner->instances[i];
+
+        if (!notme || instance != ctx->currentInstance) {
+            instance->active = false;
+        }
+    }
+    return RValue_makeUndefined();
+}
+
+
 static RValue builtinEventInherited(VMContext* ctx, [[maybe_unused]] RValue* args, [[maybe_unused]] int32_t argCount) {
     Runner* runner = (Runner*) ctx->runner;
     Instance* inst = (Instance*) ctx->currentInstance;
@@ -3069,6 +3085,7 @@ void VMBuiltins_registerAll(void) {
     registerBuiltin("instance_destroy", builtinInstanceDestroy);
     registerBuiltin("instance_create", builtinInstanceCreate);
     registerBuiltin("instance_change", builtinInstanceChange);
+    registerBuiltin("instance_deactivate_all", builtinInstanceDeactivateAll);
     registerBuiltin("action_kill_object", builtinActionKillObject);
     registerBuiltin("action_create_object", builtinActionCreateObject);
     registerBuiltin("action_set_relative", builtinActionSetRelative);
