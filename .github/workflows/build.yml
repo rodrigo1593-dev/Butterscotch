@@ -90,7 +90,7 @@ jobs:
         run: |
           sudo dpkg --add-architecture i386
           sudo apt-get update
-          sudo apt-get install -y cmake gcc-multilib g++-multilib pkg-config libbz2-dev:i386 libx11-dev:i386 libxrandr-dev:i386 libxinerama-dev:i386 libxcursor-dev:i386 libxi-dev:i386 libxkbcommon-dev:i386 libwayland-dev:i386 libgl-dev:i386
+          sudo apt-get install -y cmake gcc-multilib g++-multilib pkg-config libbz2-dev:i386 libx11-dev:i386 libxrandr-dev:i386 libxinerama-dev:i386 libxcursor-dev:i386 libxi-dev:i386 libgl-dev:i386
 
       - name: Build GLFW (32-bit)
         run: |
@@ -99,7 +99,7 @@ jobs:
           cmake -B /tmp/glfw/build -S /tmp/glfw \
             -DCMAKE_C_FLAGS=-m32 \
             -DCMAKE_INSTALL_PREFIX=/usr/local/glfw-x86 \
-            -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF
+            -DGLFW_BUILD_EXAMPLES=OFF -DGLFW_BUILD_TESTS=OFF -DGLFW_BUILD_DOCS=OFF -DGLFW_BUILD_WAYLAND=OFF
           make -C /tmp/glfw/build -j$(nproc)
           sudo make -C /tmp/glfw/build install
 
