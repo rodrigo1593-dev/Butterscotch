@@ -4294,7 +4294,7 @@ static RValue builtinFontAddSprite(VMContext* ctx, RValue* args, int32_t argCoun
 
     // Build sequential character codes: first, first+1, first+2, ...
     uint32_t frameCount = 0;
-    if (spriteIndex >= 0 && (uint32_t) spriteIndex < dw->sprt.count) {
+    if (spriteIndex >= 0 && dw->sprt.count > (uint32_t) spriteIndex) {
         frameCount = dw->sprt.sprites[spriteIndex].textureCount;
     }
     if (frameCount > 1024) frameCount = 1024;
