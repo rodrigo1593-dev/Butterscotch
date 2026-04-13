@@ -390,7 +390,7 @@ static RValue resolveVariableRead(VMContext* ctx, int32_t instanceType, uint32_t
         Instance* savedInstance = (Instance*) ctx->currentInstance;
         bool needsInstanceSwap = (instanceType >= 0) || (instanceType == INSTANCE_OTHER);
         if (needsInstanceSwap) ctx->currentInstance = targetInstance;
-        RValue result = VMBuiltins_getVariable(ctx, varDef->name, access.arrayIndex);
+        RValue result = VMBuiltins_getVariable(ctx, varDef->builtinVarId, varDef->name, access.arrayIndex);
         if (needsInstanceSwap) ctx->currentInstance = savedInstance;
 
 #ifndef DISABLE_VM_TRACING
@@ -554,7 +554,7 @@ static void writeSingleInstanceVariable(VMContext* ctx, Instance* inst, Variable
     if (varDef->varID == -6) {
         Instance* savedInstance = (Instance*) ctx->currentInstance;
         ctx->currentInstance = inst;
-        VMBuiltins_setVariable(ctx, varDef->name, val, access->arrayIndex);
+        VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, access->arrayIndex);
         ctx->currentInstance = savedInstance;
         return;
     }
@@ -637,7 +637,7 @@ static void resolveVariableWrite(VMContext* ctx, int32_t instanceType, uint32_t 
         Instance* savedInstance = (Instance*) ctx->currentInstance;
         bool needsInstanceSwap = (instanceType >= 0) || (instanceType == INSTANCE_OTHER);
         if (needsInstanceSwap) ctx->currentInstance = targetInstance;
-        VMBuiltins_setVariable(ctx, varDef->name, val, access.arrayIndex);
+        VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, access.arrayIndex);
         if (needsInstanceSwap) ctx->currentInstance = savedInstance;
 
 #ifndef DISABLE_VM_TRACING
@@ -954,7 +954,7 @@ static void handlePop(VMContext* ctx, uint32_t instr, const uint8_t* extraData) 
                     Instance* inst = runner->instances[i];
                     if (!inst->active || !VM_isObjectOrDescendant(ctx->dataWin, inst->objectIndex, instanceType)) continue;
                     ctx->currentInstance = inst;
-                    VMBuiltins_setVariable(ctx, varDef->name, val, arrayIndex);
+                    VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, arrayIndex);
                 }
                 ctx->currentInstance = savedInstance;
             } else if (instanceType >= 0) {
@@ -963,17 +963,17 @@ static void handlePop(VMContext* ctx, uint32_t instr, const uint8_t* extraData) 
                 if (target != nullptr) {
                     Instance* savedInstance = (Instance*) ctx->currentInstance;
                     ctx->currentInstance = target;
-                    VMBuiltins_setVariable(ctx, varDef->name, val, arrayIndex);
+                    VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, arrayIndex);
                     ctx->currentInstance = savedInstance;
                 }
             } else if (instanceType == INSTANCE_OTHER && ctx->otherInstance != nullptr) {
                 Instance* savedInstance = (Instance*) ctx->currentInstance;
                 ctx->currentInstance = (Instance*) ctx->otherInstance;
-                VMBuiltins_setVariable(ctx, varDef->name, val, arrayIndex);
+                VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, arrayIndex);
                 ctx->currentInstance = savedInstance;
             } else {
                 // INSTANCE_SELF or other special types: use current instance
-                VMBuiltins_setVariable(ctx, varDef->name, val, arrayIndex);
+                VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, arrayIndex);
             }
         } else {
             switch (instanceType) {
@@ -1919,6 +1919,16 @@ VMContext* VM_create(DataWin* dataWin) {
     repeat(dataWin->code.count, i) {
         CodeEntry* entry = &dataWin->code.entries[i];
         require(MAX_CODE_LOCALS > entry->localsCount);
+    }
+
+    // Pre-resolve built-in variable IDs (replaces runtime strcmp chains with O(1) switch dispatch)
+    repeat(dataWin->vari.variableCount, i) {
+        Variable* var = &dataWin->vari.variables[i];
+        if (var->varID == -6) {
+            var->builtinVarId = VMBuiltins_resolveBuiltinVarId(var->name);
+        } else {
+            var->builtinVarId = BUILTIN_VAR_UNKNOWN;
+        }
     }
 
     // Build reference lookup maps (file buffer stays read-only)

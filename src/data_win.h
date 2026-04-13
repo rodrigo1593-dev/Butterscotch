@@ -652,6 +652,7 @@ typedef struct {
     int32_t varID;
     uint32_t occurrences;
     uint32_t firstAddress;
+    int16_t builtinVarId; // Pre-resolved enum ID for built-in variables (varID == -6), -1 otherwise
 } Variable;
 
 typedef struct {
