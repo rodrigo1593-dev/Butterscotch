@@ -3316,6 +3316,48 @@ static RValue builtin_drawSpriteExt(VMContext* ctx, RValue* args, MAYBE_UNUSED i
     return RValue_makeUndefined();
 }
 
+static RValue builtin_drawSpriteTiled(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
+    Runner* runner = (Runner*) ctx->runner;
+    if (runner->renderer == nullptr) return RValue_makeUndefined();
+
+    int32_t spriteIndex = RValue_toInt32(args[0]);
+    int32_t subimg = RValue_toInt32(args[1]);
+    float x = (float) RValue_toReal(args[2]);
+    float y = (float) RValue_toReal(args[3]);
+
+    if (0 > subimg && ctx->currentInstance != nullptr) {
+        subimg = (int32_t) ((Instance*) ctx->currentInstance)->imageIndex;
+    }
+
+    float roomW = (float) runner->currentRoom->width;
+    float roomH = (float) runner->currentRoom->height;
+    Renderer_drawSpriteTiled(runner->renderer, spriteIndex, subimg, x, y, 1.0f, 1.0f, roomW, roomH, 0xFFFFFF, runner->renderer->drawAlpha);
+    return RValue_makeUndefined();
+}
+
+static RValue builtin_drawSpriteTiledExt(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
+    Runner* runner = (Runner*) ctx->runner;
+    if (runner->renderer == nullptr) return RValue_makeUndefined();
+
+    int32_t spriteIndex = RValue_toInt32(args[0]);
+    int32_t subimg = RValue_toInt32(args[1]);
+    float x = (float) RValue_toReal(args[2]);
+    float y = (float) RValue_toReal(args[3]);
+    float xscale = (float) RValue_toReal(args[4]);
+    float yscale = (float) RValue_toReal(args[5]);
+    uint32_t color = (uint32_t) RValue_toInt32(args[6]);
+    float alpha = (float) RValue_toReal(args[7]);
+
+    if (0 > subimg && ctx->currentInstance != nullptr) {
+        subimg = (int32_t) ((Instance*) ctx->currentInstance)->imageIndex;
+    }
+
+    float roomW = (float) runner->currentRoom->width;
+    float roomH = (float) runner->currentRoom->height;
+    Renderer_drawSpriteTiled(runner->renderer, spriteIndex, subimg, x, y, xscale, yscale, roomW, roomH, color, alpha);
+    return RValue_makeUndefined();
+}
+
 static RValue builtin_drawSpriteStretched(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
     Runner* runner = (Runner*) ctx->runner;
     if (runner->renderer == nullptr) return RValue_makeUndefined();
@@ -5035,6 +5077,8 @@ void VMBuiltins_registerAll(bool isGMS2) {
     // Draw
     registerBuiltin("draw_sprite", builtin_drawSprite);
     registerBuiltin("draw_sprite_ext", builtin_drawSpriteExt);
+    registerBuiltin("draw_sprite_tiled", builtin_drawSpriteTiled);
+    registerBuiltin("draw_sprite_tiled_ext", builtin_drawSpriteTiledExt);
     registerBuiltin("draw_sprite_stretched", builtin_drawSpriteStretched);
     registerBuiltin("draw_sprite_stretched_ext", builtin_drawSpriteStretchedExt);
     registerBuiltin("draw_sprite_part", builtin_drawSpritePart);

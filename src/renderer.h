@@ -225,6 +225,37 @@ static void Renderer_drawBackgroundTiled(Renderer* renderer, int32_t tpagIndex, 
     }
 }
 
+// Draws a tiled sprite across the room
+static void Renderer_drawSpriteTiled(Renderer* renderer, int32_t spriteIndex, int32_t subimg, float x, float y, float xscale, float yscale, float roomW, float roomH, uint32_t color, float alpha) {
+    DataWin* dw = renderer->dataWin;
+    int32_t tpagIndex = Renderer_resolveTPAGIndex(dw, spriteIndex, subimg);
+    if (0 > tpagIndex) return;
+
+    Sprite* sprite = &dw->sprt.sprites[spriteIndex];
+    TexturePageItem* tpag = &dw->tpag.items[tpagIndex];
+
+    float originX = (float) sprite->originX;
+    float originY = (float) sprite->originY;
+
+    // The tile size is the original sprite dimensions scaled
+    float tileW = (float) tpag->boundingWidth * fabsf(xscale);
+    float tileH = (float) tpag->boundingHeight * fabsf(yscale);
+    if (0 >= tileW || 0 >= tileH) return;
+
+    // Compute the start position so tiles cover the entire room
+    // The origin-adjusted position wraps into the tile grid
+    float startX = fmodf(x - originX * fabsf(xscale), tileW);
+    if (startX > 0) startX -= tileW;
+    float startY = fmodf(y - originY * fabsf(yscale), tileH);
+    if (startY > 0) startY -= tileH;
+
+    for (float dy = startY; roomH > dy; dy += tileH) {
+        for (float dx = startX; roomW > dx; dx += tileW) {
+            renderer->vtable->drawSprite(renderer, tpagIndex, dx + originX * fabsf(xscale), dy + originY * fabsf(yscale), originX, originY, xscale, yscale, 0.0f, color, alpha);
+        }
+    }
+}
+
 // Default draw: draws instance's sprite using its image_* properties
 static void Renderer_drawSelf(Renderer* renderer, Instance* instance) {
     if (0 > instance->spriteIndex) return;
