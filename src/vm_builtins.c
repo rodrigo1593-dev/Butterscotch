@@ -3908,6 +3908,15 @@ static RValue builtin_spriteGetYOffset(VMContext* ctx, RValue* args, MAYBE_UNUSE
     return RValue_makeReal((GMLReal) ctx->dataWin->sprt.sprites[spriteIndex].originY);
 }
 
+// sprite_set_offset(sprite_index, xoff, yoff)
+static RValue builtin_spriteSetOffset(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
+    int32_t spriteIndex = (int32_t) RValue_toReal(args[0]);
+    if (0 > spriteIndex || (uint32_t) spriteIndex >= ctx->dataWin->sprt.count) return RValue_makeReal(0.0);
+    ctx->dataWin->sprt.sprites[spriteIndex].originX = (int32_t) RValue_toReal(args[1]);
+    ctx->dataWin->sprt.sprites[spriteIndex].originY = (int32_t) RValue_toReal(args[2]);
+    return RValue_makeReal(0.0);
+}
+
 // sprite_create_from_surface(surface_id, x, y, w, h, removeback, smooth, xorig, yorig)
 static RValue builtin_spriteCreateFromSurface(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
     Runner* runner = (Runner*) ctx->runner;
@@ -5155,6 +5164,7 @@ void VMBuiltins_registerAll(VMContext* ctx, bool isGMS2) {
     VM_registerBuiltin(ctx, "sprite_get_number", builtin_spriteGetNumber);
     VM_registerBuiltin(ctx, "sprite_get_xoffset", builtin_spriteGetXOffset);
     VM_registerBuiltin(ctx, "sprite_get_yoffset", builtin_spriteGetYOffset);
+    VM_registerBuiltin(ctx, "sprite_set_offset", builtin_spriteSetOffset);
     VM_registerBuiltin(ctx, "sprite_create_from_surface", builtin_spriteCreateFromSurface);
     VM_registerBuiltin(ctx, "sprite_delete", builtin_spriteDelete);
 
