@@ -2349,6 +2349,16 @@ static void disasmFormatVar(VMContext* ctx, const uint8_t* extraData, const char
     uint32_t varRef = resolveVarOperand(extraData);
     Variable* varDef = resolveVarDef(ctx, varRef);
     const char* vType = varTypeName(varRef);
+
+    // For StackTop and Array variable types, the actual instance type comes from the stack at runtime, not from the instruction operand.
+    // Use the VARI entry's instanceType instead, since the instruction's instanceType is meaningless for these access types.
+    uint8_t varType = (varRef >> 24) & 0xF8;
+    if (varType == VARTYPE_STACKTOP || varType == VARTYPE_ARRAY) {
+        const char* scope = scopeOverride != nullptr ? scopeOverride : disasmScopeName(ctx, varDef->instanceType);
+        snprintf(buf, bufSize, "%s.%s [%s]", scope, varDef->name, vType);
+        return;
+    }
+
     const char* scope = scopeOverride != nullptr ? scopeOverride : disasmScopeName(ctx, instrInstType);
 
     if (scopeOverride == nullptr && varDef->instanceType != instrInstType) {
