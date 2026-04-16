@@ -2300,6 +2300,11 @@ static RValue builtin_audioChannelNum(VMContext* ctx, RValue* args, MAYBE_UNUSED
 static RValue builtin_audioPlaySound(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
     AudioSystem* audio = getAudioSystem(ctx);
     if (audio == nullptr) return RValue_makeReal(-1.0);
+
+    // Do not attempt to play "undefined" sounds (matches GameMaker-HTML5 behavior, and fixes random sound effects on room transitions in DELTARUNE Chapter 2)
+    if (args[0].type == RVALUE_UNDEFINED)
+        return RValue_makeReal(-1.0);
+
     int32_t soundIndex = RValue_toInt32(args[0]);
     int32_t priority = RValue_toInt32(args[1]);
     bool loop = RValue_toBool(args[2]);
