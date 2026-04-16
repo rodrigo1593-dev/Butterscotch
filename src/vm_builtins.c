@@ -260,6 +260,7 @@ int16_t VMBuiltins_resolveBuiltinVarId(const char* name) {
 
     // Other
     if (strcmp(name, "fps") == 0) return BUILTIN_VAR_FPS;
+    if (strcmp(name, "debug_mode") == 0) return BUILTIN_VAR_DEBUG_MODE;
 
     return BUILTIN_VAR_UNKNOWN;
 }
@@ -561,6 +562,7 @@ RValue VMBuiltins_getVariable(VMContext* ctx, int16_t builtinVarId, const char* 
     if (builtinVarId == BUILTIN_VAR_BUFFER_SEEK_END) return RValue_makeReal(GML_BUFFER_SEEK_END);
 
     if (builtinVarId == BUILTIN_VAR_FPS) return RValue_makeReal(ctx->dataWin->gen8.gms2FPS);
+    if (builtinVarId == BUILTIN_VAR_DEBUG_MODE) return RValue_makeBool(false);
 
     fprintf(stderr, "VM: Unhandled built-in variable read '%s' (arrayIndex=%d)\n", name, arrayIndex);
     return RValue_makeReal(0.0);
@@ -688,6 +690,7 @@ void VMBuiltins_setVariable(VMContext* ctx, int16_t builtinVarId, const char* na
         builtinVarId == BUILTIN_VAR_ID || builtinVarId == BUILTIN_VAR_OBJECT_INDEX ||
         builtinVarId == BUILTIN_VAR_CURRENT_TIME ||
         builtinVarId == BUILTIN_VAR_VIEW_CURRENT || builtinVarId == BUILTIN_VAR_PATH_INDEX ||
+        builtinVarId == BUILTIN_VAR_DEBUG_MODE ||
         (builtinVarId >= BUILTIN_VAR_BUFFER_FIXED && BUILTIN_VAR_BUFFER_SEEK_END >= builtinVarId)) {
         fprintf(stderr, "VM: Warning - attempted write to read-only built-in '%s'\n", name);
         return;
