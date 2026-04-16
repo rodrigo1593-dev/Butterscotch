@@ -1430,6 +1430,119 @@ static RValue builtinVariableGlobalSet(VMContext* ctx, RValue* args, int32_t arg
     return RValue_makeUndefined();
 }
 
+// ===[ VARIABLE_INSTANCE ]===
+
+static void variableInstanceSetOn(VMContext* ctx, Instance* target, const char* name, RValue val) {
+    int16_t builtinId = VMBuiltins_resolveBuiltinVarId(name);
+    if (builtinId != BUILTIN_VAR_UNKNOWN) {
+        Instance* saved = (Instance*) ctx->currentInstance;
+        ctx->currentInstance = target;
+        VMBuiltins_setVariable(ctx, builtinId, name, val, -1);
+        ctx->currentInstance = saved;
+        return;
+    }
+    // Lookup varID by name from VARI (self scope)
+    int32_t varID = -1;
+    forEach(Variable, v, ctx->dataWin->vari.variables, ctx->dataWin->vari.variableCount) {
+        if (v->varID >= 0 && (v->instanceType == INSTANCE_SELF || 0 > v->instanceType) && strcmp(v->name, name) == 0) {
+            varID = v->varID;
+            break;
+        }
+    }
+    if (0 > varID) {
+        fprintf(stderr, "variable_instance_set: variable '%s' not found in VARI table\n", name);
+        return;
+    }
+    Instance_setSelfVar(target, varID, val);
+}
+
+static RValue variableInstanceGetOn(VMContext* ctx, Instance* target, const char* name) {
+    int16_t builtinId = VMBuiltins_resolveBuiltinVarId(name);
+    if (builtinId != BUILTIN_VAR_UNKNOWN) {
+        Instance* saved = (Instance*) ctx->currentInstance;
+        ctx->currentInstance = target;
+        RValue val = VMBuiltins_getVariable(ctx, builtinId, name, -1);
+        ctx->currentInstance = saved;
+        // Duplicate string so caller-owned args cleanup does not affect it
+        if (val.type == RVALUE_STRING && val.string != nullptr && !val.ownsString) {
+            return RValue_makeOwnedString(safeStrdup(val.string));
+        }
+        return val;
+    }
+    int32_t varID = -1;
+    forEach(Variable, v, ctx->dataWin->vari.variables, ctx->dataWin->vari.variableCount) {
+        if (v->varID >= 0 && (v->instanceType == INSTANCE_SELF || 0 > v->instanceType) && strcmp(v->name, name) == 0) {
+            varID = v->varID;
+            break;
+        }
+    }
+    if (0 > varID) return RValue_makeUndefined();
+    RValue val = Instance_getSelfVar(target, varID);
+    if (val.type == RVALUE_STRING && val.string != nullptr) {
+        return RValue_makeOwnedString(safeStrdup(val.string));
+    }
+    return val;
+}
+
+static RValue builtinVariableInstanceGet(VMContext* ctx, RValue* args, int32_t argCount) {
+    if (2 > argCount || args[1].type != RVALUE_STRING) return RValue_makeUndefined();
+    int32_t id = RValue_toInt32(args[0]);
+    const char* name = args[1].string;
+
+    Runner* runner = (Runner*) ctx->runner;
+    int32_t instanceCount = (int32_t) arrlen(runner->instances);
+
+    if (id >= 100000) {
+        repeat(instanceCount, i) {
+            Instance* inst = runner->instances[i];
+            if (inst->active && (int32_t) inst->instanceId == id) {
+                return variableInstanceGetOn(ctx, inst, name);
+            }
+        }
+        return RValue_makeUndefined();
+    }
+
+    // Object index: return value from first matching active instance
+    repeat(instanceCount, i) {
+        Instance* inst = runner->instances[i];
+        if (inst->active && VM_isObjectOrDescendant(ctx->dataWin, inst->objectIndex, id)) {
+            return variableInstanceGetOn(ctx, inst, name);
+        }
+    }
+    return RValue_makeUndefined();
+}
+
+static RValue builtinVariableInstanceSet(VMContext* ctx, RValue* args, int32_t argCount) {
+    if (3 > argCount || args[1].type != RVALUE_STRING) return RValue_makeUndefined();
+    int32_t id = RValue_toInt32(args[0]);
+    const char* name = args[1].string;
+    RValue val = args[2];
+
+    Runner* runner = (Runner*) ctx->runner;
+    int32_t instanceCount = (int32_t) arrlen(runner->instances);
+
+    if (id >= 100000) {
+        // Specific instance ID
+        repeat(instanceCount, i) {
+            Instance* inst = runner->instances[i];
+            if (inst->active && (int32_t) inst->instanceId == id) {
+                variableInstanceSetOn(ctx, inst, name, val);
+                return RValue_makeUndefined();
+            }
+        }
+        return RValue_makeUndefined();
+    }
+
+    // Object index: set on all active instances matching (including descendants)
+    repeat(instanceCount, i) {
+        Instance* inst = runner->instances[i];
+        if (inst->active && VM_isObjectOrDescendant(ctx->dataWin, inst->objectIndex, id)) {
+            variableInstanceSetOn(ctx, inst, name, val);
+        }
+    }
+    return RValue_makeUndefined();
+}
+
 // ===[ METHOD ]===
 
 static RValue builtinMethod(VMContext* ctx, MAYBE_UNUSED RValue* args, int32_t argCount) {
@@ -5353,6 +5466,8 @@ void VMBuiltins_registerAll(VMContext* ctx) {
     VM_registerBuiltin(ctx, "variable_global_exists", builtinVariableGlobalExists);
     VM_registerBuiltin(ctx, "variable_global_get", builtinVariableGlobalGet);
     VM_registerBuiltin(ctx, "variable_global_set", builtinVariableGlobalSet);
+    VM_registerBuiltin(ctx, "variable_instance_set", builtinVariableInstanceSet);
+    VM_registerBuiltin(ctx, "variable_instance_get", builtinVariableInstanceGet);
 
     // Script
     VM_registerBuiltin(ctx, "script_execute", builtinScriptExecute);
