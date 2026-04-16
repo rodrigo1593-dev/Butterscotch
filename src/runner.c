@@ -641,11 +641,11 @@ void Runner_draw(Runner* runner) {
                 {
                     if(runner->renderer) {
                         SpriteInstance* spriteInstance = &data->sprites[i];
-                        uint32_t sprite = DataWin_resolveSPRT(runner->dataWin, spriteInstance->spritePtr);
+                        if (0 > spriteInstance->spriteIndex) continue;
                         Renderer_drawSpriteExt(
-                            runner->renderer, sprite, (int32_t)spriteInstance->frameIndex, 
-                            spriteInstance->x, spriteInstance->y, spriteInstance->scaleX, 
-                            spriteInstance->scaleY, spriteInstance->rotation, spriteInstance->color, 
+                            runner->renderer, spriteInstance->spriteIndex, (int32_t) spriteInstance->frameIndex,
+                            spriteInstance->x, spriteInstance->y, spriteInstance->scaleX,
+                            spriteInstance->scaleY, spriteInstance->rotation, spriteInstance->color,
                             1.0);
                     }
                 }

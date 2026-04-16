@@ -528,7 +528,7 @@ enum RoomLayerType : uint32_t
 
 typedef struct {
     const char* name;
-    uint32_t spritePtr;
+    int32_t spriteIndex; // Direct index into SPRT chunk
     int32_t x;
     int32_t y;
     float scaleX;

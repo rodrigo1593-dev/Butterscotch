@@ -1220,7 +1220,7 @@ static void parseROOM(BinaryReader* reader, DataWin* dw) {
                                         BinaryReader_seek(reader, spritePtrs[j]);
                                         SpriteInstance* sprite = &assets->sprites[j];
                                         sprite->name = readStringPtr(reader, dw);
-                                        sprite->spritePtr = BinaryReader_readUint32(reader);;
+                                        sprite->spriteIndex = BinaryReader_readInt32(reader);
                                         sprite->x = BinaryReader_readInt32(reader);
                                         sprite->y = BinaryReader_readInt32(reader);
                                         sprite->scaleX = BinaryReader_readFloat32(reader);
