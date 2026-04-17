@@ -1125,12 +1125,16 @@ Runner* Runner_create(DataWin* dataWin, VMContext* vm, Renderer* renderer, FileS
     return runner;
 }
 
-Instance* Runner_createInstance(Runner* runner, GMLReal x, GMLReal y, int32_t objectIndex) {
+Instance* Runner_createInstance(Runner* runner, GMLReal x, GMLReal y, int32_t objectIndex, GMLReal perf) {
     if (isObjectDisabled(runner, objectIndex)) return nullptr;
     Instance* inst = createAndInitInstance(runner, runner->nextInstanceId++, objectIndex, x, y);
     inst->createEventFired = true;
-    Runner_executeEvent(runner, inst, EVENT_PRECREATE, 0);
+    Runner_executeEvent(runner, inst, EVENT_PRECREATE, 0); //doesnt apply to this shit since is from the room where you
+    //can precreate event code injection
+    
+    if (perf==1){
     Runner_executeEvent(runner, inst, EVENT_CREATE, 0);
+    }
     return inst;
 }
 
