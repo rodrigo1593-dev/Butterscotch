@@ -1948,7 +1948,7 @@ static void handleCall(VMContext* ctx, uint32_t instr, const uint8_t* extraData)
     const char* callerName = VM_getCallerName(ctx);
     char* dedupKey = VM_createDedupKey(callerName, unknownFuncName);
 
-    if (0 > shgeti(ctx->loggedUnknownFuncs, dedupKey)) {
+    if (ctx->alwaysLogUnknownFunctions || 0 > shgeti(ctx->loggedUnknownFuncs, dedupKey)) {
         shput(ctx->loggedUnknownFuncs, dedupKey, true);
         fprintf(stderr, "VM: [%s] Unknown function \"%s\"!\n", callerName, unknownFuncName);
     } else {

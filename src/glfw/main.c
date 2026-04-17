@@ -55,6 +55,8 @@ typedef struct {
     StringBooleanEntry* stackToBeTraced;
     StringBooleanEntry* disassemble;
     StringBooleanEntry* tilesToBeTraced;
+    bool alwaysLogUnknownFunctions;
+    bool alwaysLogStubbedFunctions;
     bool headless;
     bool traceFrames;
     bool printRooms;
@@ -90,6 +92,8 @@ static void parseCommandLineArgs(CommandLineArgs* args, int argc, char* argv[]) 
         {"trace-opcodes", required_argument,       nullptr, 'o'},
         {"trace-stack", required_argument,         nullptr, 'S'},
         {"trace-frames", no_argument, nullptr, 'k'},
+        {"always-log-unknown-functions", no_argument, nullptr, 'y'},
+        {"always-log-stubbed-functions", no_argument, nullptr, 'Y'},
         {"exit-at-frame", required_argument, nullptr, 'x'},
         {"dump-frame", required_argument, nullptr, 'd'},
         {"dump-frame-json", required_argument, nullptr, 'j'},
@@ -161,6 +165,12 @@ static void parseCommandLineArgs(CommandLineArgs* args, int argc, char* argv[]) 
                 break;
             case 'k':
                 args->traceFrames = true;
+                break;
+            case 'y':
+                args->alwaysLogUnknownFunctions = true;
+                break;
+            case 'Y':
+                args->alwaysLogStubbedFunctions = true;
                 break;
             case 'x': {
                 char* endPtr;
@@ -581,6 +591,8 @@ int main(int argc, char* argv[]) {
     shcopyFromTo(args.opcodesToBeTraced, runner->vmContext->opcodesToBeTraced);
     shcopyFromTo(args.stackToBeTraced, runner->vmContext->stackToBeTraced);
     shcopyFromTo(args.tilesToBeTraced, runner->vmContext->tilesToBeTraced);
+    runner->vmContext->alwaysLogUnknownFunctions = args.alwaysLogUnknownFunctions;
+    runner->vmContext->alwaysLogStubbedFunctions = args.alwaysLogStubbedFunctions;
     runner->vmContext->traceEventInherited = args.traceEventInherited;
 
     // Set up keyboard input

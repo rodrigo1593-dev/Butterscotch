@@ -233,6 +233,8 @@ typedef struct VMContext {
     StringBooleanEntry* loggedStubbedFuncs;
     // Cross-reference map for disassembler: targetCodeIndex -> stb_ds array of callerCodeIndex
     struct { int32_t key; int32_t* value; }* crossRefMap;
+    bool alwaysLogUnknownFunctions;
+    bool alwaysLogStubbedFunctions;
 #ifndef DISABLE_VM_TRACING
     StringBooleanEntry* varReadsToBeTraced;
     StringBooleanEntry* varWritesToBeTraced;
