@@ -3251,6 +3251,27 @@ static RValue builtinInstanceChange(VMContext* ctx, RValue* args, int32_t argCou
     return RValue_makeUndefined();
 }
 
+
+//GML_INSTANCE_COPY
+static RValue builtinInstanceCopy(VMContext* ctx, RValue* args, int32_t argCount) {
+    if (1 > argCount) return RValue_makeReal(0.0);
+    Runner* runner = (Runner*) ctx->runner;
+    Instance* instme = (Instance*) ctx->currentInstance;
+    GMLReal perf = RValue_toReal(arg[0]);
+    int32_t objectIndex = RValue_toInt32(args[2]);
+    if (0 > objectIndex || runner->dataWin->objt.count <= (uint32_t) objectIndex) {
+        fprintf(stderr, "VM: instance_create: objectIndex %d out of range\n", objectIndex);
+        return RValue_makeReal(0.0);
+    }
+    Instance* callerInst = (Instance*) ctx->currentInstance;
+    Instance* inst = Runner_createInstance(runner, instme->x, instme->y, instme->objectIndex,perf);
+    if (inst == nullptr) return RValue_makeReal(-4.0); // noone
+    if (callerInst != nullptr && ctx->creatorVarID >= 0) {
+        Instance_setSelfVar(inst, ctx->creatorVarID, RValue_makeReal((GMLReal) callerInst->instanceId));
+    }
+    return RValue_makeReal((GMLReal) inst->instanceId);
+}
+
 static RValue builtinInstanceDeactivateAll(VMContext* ctx, RValue* args, int32_t argCount) {
     if (1 > argCount) return RValue_makeUndefined();
     bool notme = RValue_toBool(args[0]);
