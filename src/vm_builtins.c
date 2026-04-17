@@ -5993,7 +5993,7 @@ void VMBuiltins_registerAll(VMContext* ctx) {
     VM_registerBuiltin(ctx, "move_snap", builtinMoveSnap);
     VM_registerBuiltin(ctx, "lengthdir_x", builtinLengthdir_x);
     VM_registerBuiltin(ctx, "lengthdir_y", builtinLengthdir_y);
-
+    
     // Random
     VM_registerBuiltin(ctx, "random", builtinRandom);
     VM_registerBuiltin(ctx, "random_range", builtinRandomRange);
@@ -6172,6 +6172,7 @@ void VMBuiltins_registerAll(VMContext* ctx) {
     VM_registerBuiltin(ctx, "instance_number", builtinInstanceNumber);
     VM_registerBuiltin(ctx, "instance_find", builtinInstanceFind);
     VM_registerBuiltin(ctx, "instance_destroy", builtinInstanceDestroy);
+    VM_registerBuiltin(ctx, "instance_copy", builtinInstanceCopy);
     if(!isGMS2) {
         VM_registerBuiltin(ctx, "instance_create", builtinInstanceCreate);
     }
