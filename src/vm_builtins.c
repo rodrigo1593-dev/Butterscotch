@@ -4132,7 +4132,7 @@ static RValue builtin_application_surface_enable(VMContext* ctx, RValue* args, M
     Runner* runner = ctx->runner;
     if (runner == nullptr || argCount < 1) return RValue_makeUndefined();
 
-    bool enable = RValue_toReal(args[0]) > 0.5;
+    bool enable = RValue_toBool(args[0]);
     if (runner->appSurfaceEnabled) {
         runner->oldApplicationWidth = runner->applicationWidth;
         runner->oldApplicationHeight = runner->applicationHeight;
