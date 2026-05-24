@@ -631,6 +631,12 @@ static void parseSPRT(BinaryReader* reader, DataWin* dw, bool skipLoadingPrecise
         // Mask format: each bit = 1 pixel, MSB first, row-major
         // Width in bytes = (spriteWidth + 7) / 8, total = widthInBytes * spriteHeight
         // After all masks, data is padded to 4-byte alignment
+        // Zero-dimension sprites (placeholder/empty assets in test files) omit the mask block entirely
+        if (spr->width == 0 || spr->height == 0) {
+            spr->maskCount = 0;
+            spr->masks = nullptr;
+            continue;
+        }
         uint32_t maskDataCount = BinaryReader_readUint32(reader);
         spr->maskCount = maskDataCount;
         if (maskDataCount > 0 && spr->width > 0 && spr->height > 0) {
