@@ -784,14 +784,8 @@ static void parsePATH(BinaryReader* reader, DataWin* dw) {
         path->internalPointCount = 0;
         path->length = 0.0;
         path->name = readStringPtr(reader, dw);
-        if (12 >= dw->gen8.wadVersion) {
-            // Pre-WAD13 (WAD<=12): closed at +4, smooth at +8 (swapped vs WAD13+). Inherited from the GMS legacy .gmk stream format.
-            path->isClosed = BinaryReader_readBool32(reader);
-            path->isSmooth = BinaryReader_readBool32(reader);
-        } else {
-            path->isSmooth = BinaryReader_readBool32(reader);
-            path->isClosed = BinaryReader_readBool32(reader);
-        }
+        path->isSmooth = BinaryReader_readBool32(reader);
+        path->isClosed = BinaryReader_readBool32(reader);
         path->precision = BinaryReader_readUint32(reader);
 
         // Points SimpleList
