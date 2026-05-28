@@ -11908,6 +11908,27 @@ static RValue builtin_gpu_get_colorwriteenable(VMContext* ctx, MAYBE_UNUSED RVal
     return RValue_makeArray(out);
 }
 
+static RValue builtin_game_change(VMContext* ctx, MAYBE_UNUSED RValue* args, MAYBE_UNUSED int32_t argCount) {
+    if (2 > argCount) return RValue_makeUndefined();
+
+    char* workingDirectory = RValue_toString(args[0]);
+    char* launchParameters = RValue_toString(args[1]);
+
+    // I really doubt that a game calls game_change twice in a row, but...
+    if (ctx->runner->pendingWorkingDirectory != nullptr) {
+        free(ctx->runner->pendingWorkingDirectory);
+    }
+
+    if (ctx->runner->pendingLaunchParameters != nullptr) {
+        free(ctx->runner->pendingLaunchParameters);
+    }
+
+    ctx->runner->pendingWorkingDirectory = workingDirectory;
+    ctx->runner->pendingLaunchParameters = launchParameters;
+
+    return RValue_makeUndefined();
+}
+
 // ===[ REGISTRATION ]===
 
 void VMBuiltins_registerAll(VMContext* ctx) {
@@ -12707,4 +12728,5 @@ void VMBuiltins_registerAll(VMContext* ctx) {
         VM_registerBuiltin(ctx, "draw_set_color_write_enable", builtin_gpu_set_colorwriteenable);
         VM_registerBuiltin(ctx, "draw_set_colour_write_enable", builtin_gpu_set_colorwriteenable);
     }
+    VM_registerBuiltin(ctx, "game_change", builtin_game_change);
 }

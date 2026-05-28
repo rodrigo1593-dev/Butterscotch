@@ -470,6 +470,11 @@ struct Runner {
 
     // GameMaker surface "stack".
     int32_t surfaceStack[MAX_SURFACES];
+
+    // Both must be set
+    // The original runner actually spawns a new process when game_change is called
+    char* pendingWorkingDirectory;
+    char* pendingLaunchParameters;
 };
 
 const char* Runner_getEventName(int32_t eventType, int32_t eventSubtype);
