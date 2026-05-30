@@ -45,7 +45,7 @@ void platformSetWindowSize(int32_t width, int32_t height) {
     if (width <= 0 || height <= 0) return;
     if (!window) return;
     float xs = 1.0f, ys = 1.0f;
-    glfwGetWindowContentScale((GLFWwindow*) window, &xs, &ys);
+    glfwGetWindowContentScale(window, &xs, &ys);
     int logicalW, logicalH;
     framebufferToLogical(xs, ys, width, height, &logicalW, &logicalH);
     glfwSetWindowSize(window, logicalW, logicalH);
@@ -209,9 +209,6 @@ void platformExit(void) {
 
 void platformInitFunctions(Runner *runner) {
     g_runner = runner;
-    runner->setWindowTitle = platformSetWindowTitle;
-    runner->getWindowSize = platformGetWindowSize;
-    runner->setWindowSize = platformSetWindowSize;
     runner->windowHasFocus = platformGetWindowFocus;
 #ifdef ENABLE_SW_RENDERER
     if (gfx == SOFTWARE)
@@ -250,29 +247,6 @@ void *platformGetProcAddress(const char *name) {
 
 double platformGetTime(void) {
     return glfwGetTime();
-}
-
-bool platformHandleEvents(void) {
-    glfwPollEvents();
-    return glfwWindowShouldClose(window);
-}
-
-void platformSleepUntil(double time) {
-    double remaining = time - platformGetTime();
-    if (remaining > 0.002) {
-#ifdef _WIN32
-        Sleep((DWORD) ((remaining - 0.001) * 1000));
-#else
-        struct timespec ts = {
-            .tv_sec = 0,
-            .tv_nsec = (long) ((remaining - 0.001) * 1e9)
-        };
-        nanosleep(&ts, NULL);
-#endif
-    }
-    while (platformGetTime() < time) {
-        // Spin-wait for the remaining sub-millisecond
-    }
 }
 
 enum {
@@ -333,9 +307,14 @@ static void mapGlfwToGml(const GLFWgamepadstate* glfwState, GamepadSlot* slot) {
     }
 }
 
-void platformGamepad_poll(RunnerGamepadState* gp) {
+bool platformHandleEvents(void) {
+    if (glfwWindowShouldClose(window))
+        return true;
+
+    glfwPollEvents();
+
     for (int slotIdx = 0; slotIdx < 1 && slotIdx < MAX_GAMEPADS; slotIdx++) {
-        GamepadSlot* slot = &gp->slots[slotIdx];
+        GamepadSlot* slot = g_runner->gamepads->slots + slotIdx;
 
         bool currentlyConnected = false;
         int  foundJid = -1;
@@ -383,7 +362,27 @@ void platformGamepad_poll(RunnerGamepadState* gp) {
                 if (slot->buttonDown[btn] && !wasDown) slot->buttonPressed[btn] = true;
                 if (!slot->buttonDown[btn] && wasDown) slot->buttonReleased[btn] = true;
             }
-            gp->connectedCount++;
+            g_runner->gamepads->connectedCount++;
         }
+    }
+
+    return false;
+}
+
+void platformSleepUntil(double time) {
+    double remaining = time - platformGetTime();
+    if (remaining > 0.002) {
+#ifdef _WIN32
+        Sleep((DWORD) ((remaining - 0.001) * 1000));
+#else
+        struct timespec ts = {
+            .tv_sec = 0,
+            .tv_nsec = (long) ((remaining - 0.001) * 1e9)
+        };
+        nanosleep(&ts, NULL);
+#endif
+    }
+    while (platformGetTime() < time) {
+        // Spin-wait for the remaining sub-millisecond
     }
 }
