@@ -303,6 +303,7 @@ static const BuiltinVarEntry BUILTIN_VAR_TABLE[] = {
     { "image_speed", BUILTIN_VAR_IMAGE_SPEED },
     { "image_xscale", BUILTIN_VAR_IMAGE_XSCALE },
     { "image_yscale", BUILTIN_VAR_IMAGE_YSCALE },
+    { "instance_count", BUILTIN_VAR_INSTANCE_COUNT },
     { "keyboard_key", BUILTIN_VAR_KEYBOARD_KEY },
     { "keyboard_lastchar", BUILTIN_VAR_KEYBOARD_LASTCHAR },
     { "keyboard_lastkey", BUILTIN_VAR_KEYBOARD_LASTKEY },
@@ -1003,6 +1004,14 @@ RValue VMBuiltins_getVariable(VMContext* ctx, int16_t builtinVarId, const char* 
         case BUILTIN_VAR_GP_AXIS_RV:
             return RValue_makeReal(GP_AXIS_RV);
 
+        case BUILTIN_VAR_INSTANCE_COUNT: {
+            int32_t count = 0;
+            int32_t instanceCount = (int32_t) arrlen(runner->instances);
+            for (int32_t i = 0; instanceCount > i; i++) {
+                if (runner->instances[i]->active) count++;
+            }
+            return RValue_makeReal((GMLReal) count);
+        }
         case BUILTIN_VAR_FPS:
             return RValue_makeReal(ctx->dataWin->gen8.gms2FPS);
         case BUILTIN_VAR_DEBUG_MODE:
