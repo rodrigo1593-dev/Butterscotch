@@ -2687,8 +2687,7 @@ static RValue builtin_room_get_info(VMContext* ctx, RValue* args, int32_t argCou
             VM_structSet(ctx, vs, "vspeed", RValue_makeInt32(v->speedY));
             VM_structSet(ctx, vs, "object", RValue_makeInt32(v->objectId));
             VM_structSet(ctx, vs, "cameraID", RValue_makeInt32(-1));
-            Instance_structIncRef(vs);
-            *GMLArray_slot(views, i) = RValue_makeStruct(vs);
+            *GMLArray_slot(views, i) = RValue_makeStructAndIncRef(vs);
         }
         VM_structSet(ctx, ret, "views", RValue_makeArray(views));
     }
@@ -2712,8 +2711,7 @@ static RValue builtin_room_get_info(VMContext* ctx, RValue* args, int32_t argCou
             VM_structSet(ctx, is, "colour", RValue_makeInt32((int32_t) go->color));
             VM_structSet(ctx, is, "creation_code", RValue_makeInt32(go->creationCode));
             VM_structSet(ctx, is, "pre_creation_code", RValue_makeInt32(go->preCreateCode));
-            Instance_structIncRef(is);
-            *GMLArray_slot(insts, i) = RValue_makeStruct(is);
+            *GMLArray_slot(insts, i) = RValue_makeStructAndIncRef(is);
         }
         VM_structSet(ctx, ret, "instances", RValue_makeArray(insts));
     }
@@ -2755,8 +2753,7 @@ static RValue builtin_room_get_info(VMContext* ctx, RValue* args, int32_t argCou
                             VM_structSet(ctx, es, "image_index", RValue_makeReal(bg->firstFrame));
                             VM_structSet(ctx, es, "speed_type", RValue_makeInt32((int32_t) bg->animSpeedType));
                         }
-                        Instance_structIncRef(es);
-                        *GMLArray_slot(elements, 0) = RValue_makeStruct(es);
+                        *GMLArray_slot(elements, 0) = RValue_makeStructAndIncRef(es);
                         elemCount = 1;
                         break;
                     }
@@ -2769,8 +2766,7 @@ static RValue builtin_room_get_info(VMContext* ctx, RValue* args, int32_t argCou
                             Instance* es = Runner_createStruct(ctx->runner);
                             VM_structSet(ctx, es, "type", RValue_makeInt32((int32_t) lay->type));
                             VM_structSet(ctx, es, "inst_id", RValue_makeInt32((int32_t) id->instanceIds[j]));
-                            Instance_structIncRef(es);
-                            *GMLArray_slot(elements, j) = RValue_makeStruct(es);
+                            *GMLArray_slot(elements, j) = RValue_makeStructAndIncRef(es);
                         }
                         elemCount = ic;
                         break;
@@ -2797,8 +2793,7 @@ static RValue builtin_room_get_info(VMContext* ctx, RValue* args, int32_t argCou
                                 VM_structSet(ctx, es, "tiles", RValue_makeArray(tiles));
                             }
                         }
-                        Instance_structIncRef(es);
-                        *GMLArray_slot(elements, 0) = RValue_makeStruct(es);
+                        *GMLArray_slot(elements, 0) = RValue_makeStructAndIncRef(es);
                         elemCount = 1;
                         break;
                     }
@@ -2811,14 +2806,12 @@ static RValue builtin_room_get_info(VMContext* ctx, RValue* args, int32_t argCou
                 if (elements != nullptr) VM_structSet(ctx, ls, "elements", RValue_makeArray(elements));
             }
 
-            Instance_structIncRef(ls);
-            *GMLArray_slot(layers, i) = RValue_makeStruct(ls);
+            *GMLArray_slot(layers, i) = RValue_makeStructAndIncRef(ls);
         }
         VM_structSet(ctx, ret, "layers", RValue_makeArray(layers));
     }
 
-    Instance_structIncRef(ret);
-    return RValue_makeStruct(ret);
+    return RValue_makeStructAndIncRef(ret);
 }
 
 static RValue builtin_room_goto_next(VMContext* ctx, MAYBE_UNUSED RValue* args, MAYBE_UNUSED int32_t argCount) {
@@ -11098,8 +11091,6 @@ static RValue builtin_NewGMLObject(VMContext* ctx, RValue* args, int32_t argCoun
     }
 
     Instance* structInst = Runner_createStruct(runner);
-    // Bump to 2: registry's implicit ref + the returned RValue's ref.
-    structInst->refCount = 2;
     // Remember the constructor so member reads can fallback to its shared static struct.
     structInst->constructorCodeIndex = codeIndex;
 
@@ -11112,7 +11103,7 @@ static RValue builtin_NewGMLObject(VMContext* ctx, RValue* args, int32_t argCoun
     RValue_free(&result);
 
     ctx->currentInstance = savedSelf;
-    return RValue_makeStruct(structInst);
+    return RValue_makeStructAndIncRef(structInst);
 }
 
 // @@CopyStatic@@(parentRef) - links the current constructor's static struct to a parent constructor's static struct so a child instance resolves fields declared "static" on the parent (constructor inheritance).
