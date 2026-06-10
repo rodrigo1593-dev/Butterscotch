@@ -359,7 +359,9 @@ static void Runner_executeResolvedEvent(Runner* runner, Instance* instance, int3
     int32_t savedEventType = vm->currentEventType;
     int32_t savedEventSubtype = vm->currentEventSubtype;
     int32_t savedEventObjectIndex = vm->currentEventObjectIndex;
+    bool savedActionRelativeFlag = vm->actionRelativeFlag;
 
+    vm->actionRelativeFlag = false;
     vm->currentEventType = eventType;
     vm->currentEventSubtype = eventSubtype;
     vm->currentEventObjectIndex = ownerObjectIndex;
@@ -386,6 +388,7 @@ static void Runner_executeResolvedEvent(Runner* runner, Instance* instance, int3
     vm->currentEventType = savedEventType;
     vm->currentEventSubtype = savedEventSubtype;
     vm->currentEventObjectIndex = savedEventObjectIndex;
+    vm->actionRelativeFlag = savedActionRelativeFlag;
 }
 
 void Runner_executeEventFromObject(Runner* runner, Instance* instance, int32_t startObjectIndex, int32_t eventType, int32_t eventSubtype) {
