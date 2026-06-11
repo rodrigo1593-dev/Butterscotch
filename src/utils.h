@@ -36,7 +36,7 @@ abort(); \
 } \
 } while (0)
 
-static void requireMessageFormatted(const char *file, int line, bool condition, const char *fmt, ...) {
+static inline void requireMessageFormatted(const char *file, int line, bool condition, const char *fmt, ...) {
     if (condition)
         return;
     va_list args;
