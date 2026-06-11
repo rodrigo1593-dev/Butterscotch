@@ -1,5 +1,5 @@
 <div align="center">
-<img width="256" height="256" alt="Butterscotch Logo" src="https://github.com/user-attachments/assets/efbba827-af10-4080-924f-4958ad18f0e4" />
+<img width="256" height="256" alt="Butterscotch Logo" src="https://github.com/user-attachments/assets/ef8bdd5c-d407-4b3c-a4d5-07b25e8bbc70" />
 </div>
 
 <h1 align="center">🥧 Butterscotch 🥧</h1>
@@ -11,7 +11,7 @@
 </p>
 
 <div align="center">
-  <a href="https://play.google.com/store/apps/details?id=net.perfectdreams.butterscotch"><img width="239" height="71" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/c6be56cb-68ca-41d6-b479-3bf2a95f0ba6" /></a>
+  <a href="https://play.google.com/store/apps/details?id=net.perfectdreams.butterscotch&referrer=utm_source%3Dgithub%26utm_medium%3Dreferral%26utm_content%3Dgithub-readme"><img width="239" height="71" alt="GetItOnGooglePlay_Badge_Web_color_English" src="https://github.com/user-attachments/assets/c6be56cb-68ca-41d6-b479-3bf2a95f0ba6" /></a>
 </div>
 
 > [!IMPORTANT]  
