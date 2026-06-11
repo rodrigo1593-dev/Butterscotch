@@ -14855,7 +14855,6 @@ void VMBuiltins_registerAll(VMContext* ctx) {
     VM_registerBuiltin(ctx, "font_get_name", builtin_font_get_name);
     VM_registerBuiltin(ctx, "object_exists", builtin_object_exists);
     VM_registerBuiltin(ctx, "object_get_depth", builtin_object_get_depth);
-    VM_registerBuiltin(ctx, "object_get_sprite", builtin_object_get_sprite);
     VM_registerBuiltin(ctx, "object_get_name", builtin_object_get_name);
     VM_registerBuiltin(ctx, "object_name", builtin_object_get_name); // alias for pre-GMS 2.3
     VM_registerBuiltin(ctx, "object_get_parent", builtin_object_get_parent);
