@@ -750,10 +750,7 @@ static void writeFramebufferAsPng(GLuint fbo, int width, int height, const char*
         repeat(totalPixels, i) pixels[i * 4 + 3] = 255;
     }
 
-    // OpenGL reads bottom-to-top, but PNG is top-to-bottom.
-    // Use stb's negative stride trick: point to the last row and use a negative stride to flip vertically.
-    unsigned char* lastRow = pixels + (height - 1) * stride;
-    stbi_write_png(filename, width, height, 4, lastRow, -stride);
+    stbi_write_png(filename, width, height, 4, pixels, stride);
 
     free(pixels);
     printf("%s: %s (%dx%d)\n", logPrefix, filename, width, height);
