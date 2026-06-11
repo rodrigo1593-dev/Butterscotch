@@ -445,8 +445,7 @@ void VMBuiltins_checkIfBuiltinVarTableIsSorted(void) {
 #if defined(PLATFORM_PS3)
 #include <sys/systime.h>
 #endif
-RValue VMBuiltins_getVariable(VMContext* ctx, int16_t builtinVarId, const char* name, int32_t arrayIndex) {
-    Instance* inst = ctx->currentInstance;
+RValue VMBuiltins_getVariable(VMContext* ctx, Instance* inst, int16_t builtinVarId, const char* name, int32_t arrayIndex) {
     Runner* runner = ctx->runner;
     requireNotNull(runner);
 
@@ -1098,8 +1097,7 @@ RValue VMBuiltins_getVariable(VMContext* ctx, int16_t builtinVarId, const char* 
     return RValue_makeReal(0.0);
 }
 
-void VMBuiltins_setVariable(VMContext* ctx, int16_t builtinVarId, const char* name, RValue val, int32_t arrayIndex) {
-    Instance* inst = ctx->currentInstance;
+void VMBuiltins_setVariable(VMContext* ctx, Instance* inst, int16_t builtinVarId, const char* name, RValue val, int32_t arrayIndex) {
     Runner* runner = requireNotNullMessage(ctx->runner, "VM: setVariable called but no runner!");
     requireNotNull(runner);
 
@@ -3523,10 +3521,7 @@ static void variableInstanceSetOn(VMContext* ctx, Instance* target, const char* 
 #endif
     int16_t builtinId = VMBuiltins_resolveBuiltinVarId(name);
     if (builtinId != BUILTIN_VAR_UNKNOWN) {
-        Instance* saved = ctx->currentInstance;
-        ctx->currentInstance = target;
-        VMBuiltins_setVariable(ctx, builtinId, name, val, -1);
-        ctx->currentInstance = saved;
+        VMBuiltins_setVariable(ctx, target, builtinId, name, val, -1);
         return;
     }
 
@@ -3544,10 +3539,7 @@ static void variableInstanceSetOn(VMContext* ctx, Instance* target, const char* 
 static RValue variableInstanceGetOn(VMContext* ctx, Instance* target, const char* name, MAYBE_UNUSED const char* originBuiltin) {
     int16_t builtinId = VMBuiltins_resolveBuiltinVarId(name);
     if (builtinId != BUILTIN_VAR_UNKNOWN) {
-        Instance* saved = ctx->currentInstance;
-        ctx->currentInstance = target;
-        RValue val = VMBuiltins_getVariable(ctx, builtinId, name, -1);
-        ctx->currentInstance = saved;
+        RValue val = VMBuiltins_getVariable(ctx, target, builtinId, name, -1);
 #ifdef ENABLE_VM_TRACING
         char additional[48];
         snprintf(additional, sizeof(additional), " (%s, builtin)", originBuiltin);

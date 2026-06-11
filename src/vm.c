@@ -809,12 +809,8 @@ static RValue resolveVariableRead(VMContext* ctx, int32_t instanceType, uint32_t
                     return value;
             }
         }
-        // For object/instance references, temporarily swap currentInstance so VMBuiltins reads the correct instance
-        Instance* savedInstance = (Instance*) ctx->currentInstance;
-        bool needsInstanceSwap = (instanceType >= 0) || (instanceType == INSTANCE_OTHER);
-        if (needsInstanceSwap) ctx->currentInstance = targetInstance;
-        RValue result = VMBuiltins_getVariable(ctx, varDef->builtinVarId, varDef->name, access.arrayIndex);
-        if (needsInstanceSwap) ctx->currentInstance = savedInstance;
+
+        RValue result = VMBuiltins_getVariable(ctx, targetInstance, varDef->builtinVarId, varDef->name, access.arrayIndex);
 
 #ifdef ENABLE_VM_TRACING
         if (instanceType == INSTANCE_GLOBAL) {
@@ -903,10 +899,7 @@ static RValue resolveVariableRead(VMContext* ctx, int32_t instanceType, uint32_t
 static void writeSingleInstanceVariable(VMContext* ctx, Instance* inst, Variable* varDef, ArrayAccess* access, RValue val) {
     // Built-in variable (varID == -6 sentinel)
     if (varDef->varID == -6) {
-        Instance* savedInstance = (Instance*) ctx->currentInstance;
-        ctx->currentInstance = inst;
-        VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, access->arrayIndex);
-        ctx->currentInstance = savedInstance;
+        VMBuiltins_setVariable(ctx, inst, varDef->builtinVarId, varDef->name, val, access->arrayIndex);
         return;
     }
 
@@ -1106,12 +1099,7 @@ static void resolveVariableWrite(VMContext* ctx, int32_t instanceType, uint32_t 
 
     // Check for built-in variable (varID == -6 sentinel)
     if (varDef->varID == -6) {
-        // For object/instance references, temporarily swap currentInstance so VMBuiltins writes the correct instance
-        Instance* savedInstance = (Instance*) ctx->currentInstance;
-        bool needsInstanceSwap = (instanceType >= 0) || (instanceType == INSTANCE_OTHER);
-        if (needsInstanceSwap) ctx->currentInstance = targetInstance;
-        VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, access.arrayIndex);
-        if (needsInstanceSwap) ctx->currentInstance = savedInstance;
+        VMBuiltins_setVariable(ctx, targetInstance, varDef->builtinVarId, varDef->name, val, access.arrayIndex);
 
 #ifdef ENABLE_VM_TRACING
         if (instanceType == INSTANCE_GLOBAL) {
@@ -1501,8 +1489,7 @@ static void handlePop(VMContext* ctx, uint32_t instr, uint8_t type1, uint8_t typ
                 for (int32_t i = snapBase; snapEnd > i; i++) {
                     Instance* inst = runner->instanceSnapshots[i];
                     if (!inst->active) continue;
-                    ctx->currentInstance = inst;
-                    VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, arrayIndex);
+                    VMBuiltins_setVariable(ctx, inst, varDef->builtinVarId, varDef->name, val, arrayIndex);
 #ifdef ENABLE_VM_TRACING
                     VM_checkIfVariableShouldBeTracedAndLog(ctx, instanceObjectName(ctx, inst), "self", varDef->name, val, true, arrayIndex, inst->instanceId, " (builtin, all-instances object write)");
 #endif
@@ -1513,26 +1500,19 @@ static void handlePop(VMContext* ctx, uint32_t instr, uint8_t type1, uint8_t typ
                 // Instance ID reference
                 Instance* target = findInstanceByTarget(ctx, instanceType);
                 if (target != nullptr) {
-                    Instance* savedInstance = (Instance*) ctx->currentInstance;
-                    ctx->currentInstance = target;
-                    VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, arrayIndex);
-                    ctx->currentInstance = savedInstance;
+                    VMBuiltins_setVariable(ctx, target, varDef->builtinVarId, varDef->name, val, arrayIndex);
 #ifdef ENABLE_VM_TRACING
                     VM_checkIfVariableShouldBeTracedAndLog(ctx, instanceObjectName(ctx, target), "self", varDef->name, val, true, arrayIndex, target->instanceId, " (builtin)");
 #endif
                 }
             } else if (instanceType == INSTANCE_OTHER && ctx->otherInstance != nullptr) {
-                Instance* savedInstance = (Instance*) ctx->currentInstance;
-                Instance* otherInst = (Instance*) ctx->otherInstance;
-                ctx->currentInstance = otherInst;
-                VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, arrayIndex);
-                ctx->currentInstance = savedInstance;
+                VMBuiltins_setVariable(ctx, ctx->otherInstance, varDef->builtinVarId, varDef->name, val, arrayIndex);
 #ifdef ENABLE_VM_TRACING
-                VM_checkIfVariableShouldBeTracedAndLog(ctx, instanceObjectName(ctx, otherInst), "self", varDef->name, val, true, arrayIndex, otherInst->instanceId, " (builtin)");
+                VM_checkIfVariableShouldBeTracedAndLog(ctx, instanceObjectName(ctx, ctx->otherInstance), "self", varDef->name, val, true, arrayIndex, ctx->otherInstance->instanceId, " (builtin)");
 #endif
             } else {
                 // INSTANCE_SELF or other special types: use current instance
-                VMBuiltins_setVariable(ctx, varDef->builtinVarId, varDef->name, val, arrayIndex);
+                VMBuiltins_setVariable(ctx, ctx->currentInstance, varDef->builtinVarId, varDef->name, val, arrayIndex);
 #ifdef ENABLE_VM_TRACING
                 Instance* inst = (Instance*) ctx->currentInstance;
                 if (instanceType == INSTANCE_GLOBAL) {
