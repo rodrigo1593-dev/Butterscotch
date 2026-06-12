@@ -2408,14 +2408,15 @@ DataWin* DataWin_parse(const char* filePath, DataWinParserOptions options) {
     setvbuf(file, nullptr, _IOFBF, 128 * 1024);
 
     fseek(file, 0, SEEK_END);
-    size_t fileSize = ftell(file);
+    long fileSizeRaw = ftell(file);
     fseek(file, 0, SEEK_SET);
 
-    if (fileSize <= 0) {
-        fprintf(stderr, "Invalid file size: %ld\n", fileSize);
+    if (0 >= fileSizeRaw) {
+        fprintf(stderr, "Invalid file size: %ld\n", fileSizeRaw);
         fclose(file);
         exit(1);
     }
+    size_t fileSize = (size_t) fileSizeRaw;
 
     // Allocate and zero-initialize DataWin
     DataWin* dw = safeCalloc(1, sizeof(DataWin));
