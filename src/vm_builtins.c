@@ -12277,6 +12277,22 @@ static RValue builtin_tilemap_get_at_pixel(VMContext* ctx, RValue* args, MAYBE_U
     return RValue_makeReal((GMLReal) cell);
 }
 
+// tilemap_get_tileset(tilemapElementId): returns the BGND (tileset) index backing the tilemap, or -1.
+// (see GameMaker-HTML5 Function_Layers.js tilemap_get_tileset)
+static RValue builtin_tilemap_get_tileset(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
+    if (1 > argCount) return RValue_makeReal(-1.0);
+    RoomLayerTilesData* data = findTilemapData(ctx->runner, RValue_toInt32(args[0]), nullptr);
+    if (data == nullptr) return RValue_makeReal(-1.0);
+    return RValue_makeReal((GMLReal) data->backgroundIndex);
+}
+
+// tile_get_index(tiledata): extracts the tileset cell index from a raw tile cell value, masking off the mirror/flip/rotate bits.
+// (see GameMaker-HTML5 Function_Layers.js: TileIndex_Mask = 0x7ffff, TileIndex_Shift = 0)
+static RValue builtin_tile_get_index(MAYBE_UNUSED VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
+    if (1 > argCount) return RValue_makeReal(-1.0);
+    return RValue_makeReal((GMLReal) (RValue_toInt32(args[0]) & 0x7ffff));
+}
+
 static RValue builtin_layer_get_all(VMContext* ctx, MAYBE_UNUSED RValue* args, MAYBE_UNUSED int32_t argCount) {
     Runner* runner = ctx->runner;
     RValue arr = VM_createArray(ctx);
@@ -14876,6 +14892,8 @@ void VMBuiltins_registerAll(VMContext* ctx) {
     VM_registerBuiltin(ctx, "tilemap_get_x", builtin_tilemap_get_x);
     VM_registerBuiltin(ctx, "tilemap_get_y", builtin_tilemap_get_y);
     VM_registerBuiltin(ctx, "tilemap_get_at_pixel", builtin_tilemap_get_at_pixel);
+    VM_registerBuiltin(ctx, "tilemap_get_tileset", builtin_tilemap_get_tileset);
+    VM_registerBuiltin(ctx, "tile_get_index", builtin_tile_get_index);
 #endif
     VM_registerBuiltin(ctx, "layer_create", builtin_layer_create);
     VM_registerBuiltin(ctx, "layer_destroy", builtin_layer_destroy);
