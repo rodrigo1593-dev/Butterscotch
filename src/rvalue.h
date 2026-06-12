@@ -483,3 +483,19 @@ static inline bool RValue_toBool(RValue val) {
         default:            return false;
     }
 }
+
+// Copies "val" into *slot by making the RValue independent. Caller retains "val".
+static inline void RValue_copyIntoSlot(RValue* slot, RValue val) {
+    RValue target = RValue_makeIndependent(val);
+    // Free whatever was there.
+    RValue_free(slot);
+    *slot = target;
+}
+
+// Writes "val" into *slot. If the "val" is owning, we steal it, if it isn't, we copy it. Caller must NOT free "val".
+static inline void RValue_writeIntoSlotStealingOwnershipOrCopying(RValue* slot, RValue val) {
+    RValue target = val.ownsReference ? val : RValue_makeIndependent(val);
+    // Free whatever was there.
+    RValue_free(slot);
+    *slot = target;
+}

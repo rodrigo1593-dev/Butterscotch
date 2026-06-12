@@ -906,28 +906,6 @@ static void writeSingleInstanceVariable(VMContext* ctx, Instance* inst, Variable
     Instance_setSelfVar(inst, varDef->varID, val);
 }
 
-// Transfer ownership of "val into "*dest", freeing the old value first.
-// Strings are duplicated only if the source view is non-owning (so we don't double-free).
-// Arrays/methods/structs bump refcount when needed and flip the source's ownsReference flag to take a strong ref.
-static inline void writeIntoSlot(RValue* dest, RValue val) {
-    if (val.type == RVALUE_STRING && !val.ownsReference && val.string != nullptr) {
-        val = RValue_makeOwnedString(safeStrdup(val.string));
-    } else if (val.type == RVALUE_ARRAY && val.array != nullptr) {
-        if (!val.ownsReference) GMLArray_incRef(val.array);
-        val.ownsReference = true;
-#if IS_WAD17_OR_HIGHER_ENABLED
-    } else if (val.type == RVALUE_METHOD && val.method != nullptr) {
-        if (!val.ownsReference) GMLMethod_incRef(val.method);
-        val.ownsReference = true;
-#endif
-    } else if (val.type == RVALUE_STRUCT && val.structInst != nullptr) {
-        if (!val.ownsReference) Instance_structIncRef(val.structInst);
-        val.ownsReference = true;
-    }
-    RValue_free(dest);
-    *dest = val;
-}
-
 // Force out-of-line so the OP_POP fast path in executeLoop doesn't inline this, because we already have an "optimized" version for common writes
 __attribute__((noinline))
 static void resolveVariableWrite(VMContext* ctx, int32_t instanceType, uint32_t varRef, RValue val) {
@@ -943,7 +921,7 @@ static void resolveVariableWrite(VMContext* ctx, int32_t instanceType, uint32_t 
             case INSTANCE_LOCAL: {
                 uint32_t localSlot = resolveLocalSlot(ctx, varDef->varID);
                 require(ctx->localVarCount > localSlot);
-                writeIntoSlot(&ctx->localVars[localSlot], val);
+                RValue_writeIntoSlotStealingOwnershipOrCopying(&ctx->localVars[localSlot], val);
 #ifdef ENABLE_VM_TRACING
                 VM_checkIfVariableShouldBeTracedAndLog(ctx, "local", nullptr, varDef->name, ctx->localVars[localSlot], true, -1, -1, "");
 #endif
@@ -952,7 +930,7 @@ static void resolveVariableWrite(VMContext* ctx, int32_t instanceType, uint32_t 
             case INSTANCE_GLOBAL: {
                 uint32_t globalSlot = resolveGlobalSlot(ctx, varDef->varID);
                 require(ctx->globalVarCount > globalSlot);
-                writeIntoSlot(&ctx->globalVars[globalSlot], val);
+                RValue_writeIntoSlotStealingOwnershipOrCopying(&ctx->globalVars[globalSlot], val);
 #ifdef ENABLE_VM_TRACING
                 VM_checkIfVariableShouldBeTracedAndLog(ctx, "global", nullptr, varDef->name, ctx->globalVars[globalSlot], true, -1, -1, "");
 #endif
@@ -1156,14 +1134,14 @@ static void resolveVariableWrite(VMContext* ctx, int32_t instanceType, uint32_t 
         case INSTANCE_LOCAL: {
             uint32_t localSlot = resolveLocalSlot(ctx, varDef->varID);
             require(ctx->localVarCount > localSlot);
-            writeIntoSlot(&ctx->localVars[localSlot], val);
+            RValue_writeIntoSlotStealingOwnershipOrCopying(&ctx->localVars[localSlot], val);
             return;
         }
         case INSTANCE_GLOBAL: {
             uint32_t globalSlot = resolveGlobalSlot(ctx, varDef->varID);
             require(ctx->globalVarCount > globalSlot);
             RValue* dest = &ctx->globalVars[globalSlot];
-            writeIntoSlot(dest, val);
+            RValue_writeIntoSlotStealingOwnershipOrCopying(dest, val);
 #ifdef ENABLE_VM_TRACING
             VM_checkIfVariableShouldBeTracedAndLog(ctx, "global", nullptr, varDef->name, *dest, true, -1, -1, "");
 #endif
