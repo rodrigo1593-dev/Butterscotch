@@ -735,7 +735,8 @@ static void freeCommandLineArgs(CommandLineArgs* args) {
 // Reads the contents of an FBO (use 0 for the default framebuffer) into a PNG file.
 // If forceOpaque is true, the alpha channel is overwritten with 255, fixing any clobbering done by blending modes.
 #if defined(ENABLE_LEGACY_GL) || defined(ENABLE_MODERN_GL)
-static void writeFramebufferAsPng(GLuint fbo, int width, int height, const char* filename, const char* logPrefix, bool forceOpaque) {
+// When flipY is true, the image will be flipped vertically.
+static void writeFramebufferAsPng(GLuint fbo, int width, int height, const char* filename, const char* logPrefix, bool forceOpaque, bool flipY) {
     glBindFramebuffer(GL_READ_FRAMEBUFFER, fbo);
 
     int stride = width * 4;
@@ -752,16 +753,22 @@ static void writeFramebufferAsPng(GLuint fbo, int width, int height, const char*
         repeat(totalPixels, i) pixels[i * 4 + 3] = 255;
     }
 
-    stbi_write_png(filename, width, height, 4, pixels, stride);
+    if (flipY) {
+        // Use stb's negative stride trick: point to the last row and use a negative stride to flip vertically.
+        unsigned char* lastRow = pixels + (height - 1) * stride;
+        stbi_write_png(filename, width, height, 4, lastRow, -stride);
+    } else {
+        stbi_write_png(filename, width, height, 4, pixels, stride);
+    }
 
     free(pixels);
     printf("%s: %s (%dx%d)\n", logPrefix, filename, width, height);
 }
 
-static void captureScreenshot(GLuint fbo, const char* filenamePattern, int frameNumber, int width, int height) {
+static void captureScreenshot(GLuint fbo, const char* filenamePattern, int frameNumber, int width, int height, bool flipY) {
     char filename[512];
     snprintf(filename, sizeof(filename), filenamePattern, frameNumber);
-    writeFramebufferAsPng(fbo, width, height, filename, "Screenshot saved", true);
+    writeFramebufferAsPng(fbo, width, height, filename, "Screenshot saved", true, flipY);
 }
 
 // Dumps every live surface in the GL renderer as a PNG.
@@ -777,7 +784,7 @@ static void dumpAllSurfaces(GLRenderer* gl, const char* filenamePattern, int fra
 
         char filename[512];
         snprintf(filename, sizeof(filename), filenamePattern, frameNumber, (int) surfaceId);
-        writeFramebufferAsPng(gl->surfaces[surfaceId], width, height, filename, "Surface dump", false);
+        writeFramebufferAsPng(gl->surfaces[surfaceId], width, height, filename, "Surface dump", false, false);
     }
 
     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
@@ -1639,17 +1646,7 @@ int main(int argc, char* argv[]) {
                 bool shouldScreenshot = hmget(args.screenshotFrames, runner->frameCount);
 
                 if (shouldScreenshot || RunnerKeyboard_checkPressed(runner->keyboard, VK_F5)) {
-                    int32_t appId = runner->applicationSurfaceId;
-                    GLuint readFbo;
-#ifdef ENABLE_LEGACY_GL
-                    if (gfx == LEGACY_GL) {
-                        readFbo = ((GLLegacyRenderer*) renderer)->surfaces[appId];
-                    } else
-#endif
-                    {
-                        readFbo = ((GLRenderer*) renderer)->surfaces[appId];
-                    }
-                    captureScreenshot(readFbo, args.screenshotPattern, runner->frameCount, gameW, gameH);
+                    captureScreenshot(0, args.screenshotPattern, runner->frameCount, fbWidth, fbHeight, true);
                     glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
                 }
 
