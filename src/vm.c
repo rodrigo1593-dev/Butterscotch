@@ -3840,20 +3840,7 @@ RValue VM_callCodeIndex(VMContext* ctx, int32_t codeIndex, RValue* args, int32_t
 
     // Strengthen result BEFORE freeing callee locals/scriptArgs: if result is a weak view into callee state, the upcoming frees would leave a dangling pointer.
     // For owning results, the refCount/string buffer stays valid (the callee transferred one ownership slot to us).
-    if (result.type == RVALUE_STRING && !result.ownsReference && result.string != nullptr) {
-        result = RValue_makeOwnedString(safeStrdup(result.string));
-    } else if (result.type == RVALUE_ARRAY && !result.ownsReference && result.array != nullptr) {
-        GMLArray_incRef(result.array);
-        result.ownsReference = true;
-#if IS_WAD17_OR_HIGHER_ENABLED
-    } else if (result.type == RVALUE_METHOD && !result.ownsReference && result.method != nullptr) {
-        GMLMethod_incRef(result.method);
-        result.ownsReference = true;
-#endif
-    } else if (result.type == RVALUE_STRUCT && !result.ownsReference && result.structInst != nullptr) {
-        Instance_structIncRef(result.structInst);
-        result.ownsReference = true;
-    }
+    result = RValue_stealOwnershipOrCopy(result);
 
     // Restore caller frame
     CallFrame* saved = ctx->callStack;

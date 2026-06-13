@@ -263,6 +263,13 @@ static inline RValue RValue_makeIndependent(RValue val) {
     return val;
 }
 
+// Steals the "val" ownership or, if it isn't owned, makes it independent.
+static inline RValue RValue_stealOwnershipOrCopy(RValue val) {
+    if (val.ownsReference)
+        return val;
+    return RValue_makeIndependent(val);
+}
+
 // Converts an RValue to a heap-allocated string representation.
 // The caller must free the returned string
 static inline char* RValue_toString(RValue val) {
@@ -494,7 +501,7 @@ static inline void RValue_copyIntoSlot(RValue* slot, RValue val) {
 
 // Writes "val" into *slot. If the "val" is owning, we steal it, if it isn't, we copy it. Caller must NOT free "val".
 static inline void RValue_writeIntoSlotStealingOwnershipOrCopying(RValue* slot, RValue val) {
-    RValue target = val.ownsReference ? val : RValue_makeIndependent(val);
+    RValue target = RValue_stealOwnershipOrCopy(val);
     // Free whatever was there.
     RValue_free(slot);
     *slot = target;
