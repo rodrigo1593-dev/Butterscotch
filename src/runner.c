@@ -865,8 +865,8 @@ void Runner_draw(Runner* runner) {
                             float xscale = roomW / (float) tpag->boundingWidth;
                             float yscale = roomH / (float) tpag->boundingHeight;
                             runner->renderer->vtable->drawSprite(runner->renderer, tpagIndex, 0.0f, 0.0f, 0.0f, 0.0f, xscale, yscale, 0.0f, bg->blend, bg->alpha);
-                        } else if (bg->htiled || bg->vtiled) {
-                            Renderer_drawBackgroundTiled(runner->renderer, tpagIndex, layerOffsetX + bg->xOffset, layerOffsetY + bg->yOffset, bg->xScale, bg->yScale, bg->htiled, bg->vtiled, roomW, roomH, bg->alpha);
+                        } else if (bg->hTiled || bg->vTiled) {
+                            Renderer_drawBackgroundTiled(runner->renderer, tpagIndex, layerOffsetX + bg->xOffset, layerOffsetY + bg->yOffset, bg->xScale, bg->yScale, bg->hTiled, bg->vTiled, roomW, roomH, bg->alpha);
                         } else {
                             runner->renderer->vtable->drawSprite(runner->renderer, tpagIndex, layerOffsetX + bg->xOffset, layerOffsetY + bg->yOffset, 0.0f, 0.0f, bg->xScale, bg->yScale, 0.0f, bg->blend, bg->alpha);
                         }

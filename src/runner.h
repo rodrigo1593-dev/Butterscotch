@@ -183,8 +183,8 @@ typedef struct {
 typedef struct {
     int32_t spriteIndex; // SPRT index (-1 = none)
     bool visible;
-    bool htiled;
-    bool vtiled;
+    bool hTiled;
+    bool vTiled;
     bool stretch;
     float xScale;
     float yScale;

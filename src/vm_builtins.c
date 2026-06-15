@@ -12222,8 +12222,8 @@ static RValue builtin_layer_background_create(VMContext* ctx, RValue* args, MAYB
     RuntimeBackgroundElement* bg = safeMalloc(sizeof(RuntimeBackgroundElement));
     bg->spriteIndex = spriteIndex;
     bg->visible = true;
-    bg->htiled = false;
-    bg->vtiled = false;
+    bg->hTiled = false;
+    bg->vTiled = false;
     bg->stretch = false;
     bg->xScale = 1.0f;
     bg->yScale = 1.0f;
@@ -12287,16 +12287,17 @@ static RoomLayerTilesData* findTilemapData(Runner* runner, int32_t elementId, Ru
     return el->tilemapData;
 }
 
+#define setBackgroundLayerField(id, parsedParameter, targetParameter) \
+    RuntimeBackgroundElement* bg = findBackgroundElement(runner, id); \
+    if (bg != nullptr) bg->targetParameter = parsedParameter; \
+    RoomLayerBackgroundData* parsed = findParsedBackgroundData(runner, id); \
+    if (parsed != nullptr) parsed->targetParameter = parsedParameter;
+
 static RValue builtin_layer_background_visible(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     bool visible = RValue_toBool(args[1]);
-    RuntimeBackgroundElement* bg = findBackgroundElement(runner, id);
-    if (bg != nullptr)
-        bg->visible = visible;
-    RoomLayerBackgroundData* parsed = findParsedBackgroundData(runner, id);
-    if (parsed != nullptr)
-        parsed->visible = visible;
+    setBackgroundLayerField(id, visible, visible);
     return RValue_makeUndefined();
 }
 
@@ -12304,12 +12305,7 @@ static RValue builtin_layer_background_htiled(VMContext* ctx, RValue* args, MAYB
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     bool tiled = RValue_toBool(args[1]);
-    RuntimeBackgroundElement* bg = findBackgroundElement(runner, id);
-    if (bg != nullptr)
-        bg->htiled = tiled;
-    RoomLayerBackgroundData* parsed = findParsedBackgroundData(runner, id);
-    if (parsed != nullptr)
-        parsed->hTiled = tiled;
+    setBackgroundLayerField(id, tiled, hTiled);
     return RValue_makeUndefined();
 }
 
@@ -12317,12 +12313,7 @@ static RValue builtin_layer_background_vtiled(VMContext* ctx, RValue* args, MAYB
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     bool tiled = RValue_toBool(args[1]);
-    RuntimeBackgroundElement* bg = findBackgroundElement(runner, id);
-    if (bg != nullptr)
-        bg->vtiled = tiled;
-    RoomLayerBackgroundData* parsed = findParsedBackgroundData(runner, id);
-    if (parsed != nullptr)
-        parsed->vTiled = tiled;
+    setBackgroundLayerField(id, tiled, vTiled);
     return RValue_makeUndefined();
 }
 
@@ -12346,12 +12337,7 @@ static RValue builtin_layer_background_stretch(VMContext* ctx, RValue* args, MAY
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     bool stretch = RValue_toBool(args[1]);
-    RuntimeBackgroundElement* bg = findBackgroundElement(runner, id);
-    if (bg != nullptr)
-        bg->stretch = stretch;
-    RoomLayerBackgroundData* parsed = findParsedBackgroundData(runner, id);
-    if (parsed != nullptr)
-        parsed->stretch = stretch;
+    setBackgroundLayerField(id, stretch, stretch);
     return RValue_makeUndefined();
 }
 
@@ -12386,15 +12372,9 @@ static RValue builtin_layer_background_alpha(VMContext* ctx, RValue* args, MAYBE
 
 static RValue builtin_layer_background_sprite(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
     Runner* runner = ctx->runner;
-    int32_t elementId = RValue_toInt32(args[0]);
+    int32_t id = RValue_toInt32(args[0]);
     int32_t spriteIndex = RValue_toInt32(args[1]);
-
-    RuntimeBackgroundElement* bg = findBackgroundElement(runner, elementId);
-    if (bg != nullptr)
-        bg->spriteIndex = spriteIndex;
-    RoomLayerBackgroundData* parsed = findParsedBackgroundData(runner, elementId);
-    if (parsed != nullptr)
-        parsed->spriteIndex = spriteIndex;
+    setBackgroundLayerField(id, spriteIndex, spriteIndex);
     return RValue_makeUndefined();
 }
 
