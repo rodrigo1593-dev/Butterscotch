@@ -530,7 +530,7 @@ static void renderBackgroundElement(Runner* runner, RuntimeBackgroundElement* bg
 }
 
 // Legacy GameMaker: Studio 1.x backgrounds
-void Runner_drawBackgrounds(Runner* runner, bool foreground) {
+static void drawGMS1Backgrounds(Runner* runner, bool foreground) {
     if (runner->renderer == nullptr) return;
     DataWin* dataWin = runner->dataWin;
     float roomW = (float) runner->currentRoom->width;
@@ -778,7 +778,7 @@ void Runner_draw(Runner* runner) {
 
     // Draw non-foreground backgrounds (behind everything)
     if (!DataWin_isVersionAtLeast(runner->dataWin, 2, 0, 0, 0))
-        Runner_drawBackgrounds(runner, false);
+        drawGMS1Backgrounds(runner, false);
 
     fireDrawSubtype(runner, runner->cachedDrawables, drawableCount, DRAW_BEGIN);
 
@@ -995,7 +995,7 @@ void Runner_draw(Runner* runner) {
     fireDrawSubtype(runner, runner->cachedDrawables, drawableCount, DRAW_END);
 
     // Draw foreground backgrounds (in front of instances, behind GUI)
-    Runner_drawBackgrounds(runner, true);
+    drawGMS1Backgrounds(runner, true);
 }
 
 // Open a GUI-space draw pass and remember its parameters so surface_reset_target can restore the GUI target + projection when the surface stack pops back to empty mid-pass.
