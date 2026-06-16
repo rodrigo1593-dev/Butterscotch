@@ -40,7 +40,7 @@ check 'if the C compiler works' || exit 1
 
 printf 'checking if we are cross compiling: '
 printf 'checking if we are cross compiling:\n' >> tmp/config.log
-if tmp/a.out; then
+if tmp/a.out > /dev/null 2>&1; then
     printf 'no\n'
     printf 'result: no\n' >> tmp/config.log
 else
@@ -55,7 +55,7 @@ if check 'for librt' -lrt; then
 fi
 
 if check 'for libdl' -ldl; then
-    # sometimes needed for glad
+    # sometimes needed for glad or miniaudio
     config 'LIBS += -ldl'
 fi
 
@@ -90,6 +90,18 @@ int main(void){return 0;}
 if ! check 'if stdbool.h works'; then
     # Needed for GCC 2.95, where stdbool.h doesn't work in C++ mode
     config 'INCLUDES += -Icompat/stdbool'
+fi
+
+printf '%s' "\
+#include <stdio.h>
+int main(void){
+  puts(__func__);
+  return 0;
+}
+" > tmp/test.c
+
+if ! check 'if __func__ works'; then
+    config 'DEFINES += -D__func__=\"unknown\"'
 fi
 
 rm -f tmp/test.c tmp/a.out

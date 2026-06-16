@@ -39,6 +39,12 @@
     #endif
 #endif
 
+#if defined(__GNUC__) && (__GNUC__ >= 3 || (__GNUC__ == 2 && __GNUC_MINOR__ >= 8))
+    #define ALIGN(x) __attribute__((aligned(x)));
+#else
+    #define ALIGN(x)
+#endif
+
 #if defined(__GNUC__) || defined(__clang__)
     #if defined(__x86_64__) || defined(__i386__)
         #define YIELD() __asm__ volatile("rep; nop" : : : "memory")
