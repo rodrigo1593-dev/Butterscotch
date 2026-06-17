@@ -12618,12 +12618,18 @@ static RValue builtin_layer_sprite_get_id(VMContext* ctx, RValue* args, MAYBE_UN
     return RValue_makeReal(-1.0);
 }
 
+static bool isValidLayerSpriteElement(RuntimeLayerElement* element) {
+    bool isValid = element != nullptr && element->type == RuntimeLayerElementType_Sprite;
+    requireNotNull(element->spriteElement); // If this crashes then something went DEEPLY wrong
+    return isValid;
+}
+
 static RValue builtin_layer_sprite_get_sprite(VMContext* ctx, RValue* args, MAYBE_UNUSED int32_t argCount) {
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
 
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(-1.0);
 
     return RValue_makeReal((GMLReal) el->spriteElement->spriteIndex);
@@ -12633,7 +12639,7 @@ static RValue builtin_layer_sprite_get_angle(VMContext* ctx, RValue* args, MAYBE
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(0.0);
     return RValue_makeReal((GMLReal) el->spriteElement->rotation);
 }
@@ -12642,7 +12648,7 @@ static RValue builtin_layer_sprite_get_alpha(VMContext* ctx, RValue* args, MAYBE
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(0.0);
     return RValue_makeReal(el->alpha);
 }
@@ -12651,7 +12657,7 @@ static RValue builtin_layer_sprite_get_blend(VMContext* ctx, RValue* args, MAYBE
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(0.0);
     return RValue_makeReal((GMLReal) el->blend);
 }
@@ -12660,7 +12666,7 @@ static RValue builtin_layer_sprite_get_x(VMContext* ctx, RValue* args, MAYBE_UNU
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(0.0);
     return RValue_makeReal((GMLReal) el->spriteElement->x);
 }
@@ -12669,7 +12675,7 @@ static RValue builtin_layer_sprite_get_y(VMContext* ctx, RValue* args, MAYBE_UNU
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(0.0);
     return RValue_makeReal((GMLReal) el->spriteElement->y);
 }
@@ -12678,7 +12684,7 @@ static RValue builtin_layer_sprite_get_xscale(VMContext* ctx, RValue* args, MAYB
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(1.0);
     return RValue_makeReal((GMLReal) el->spriteElement->scaleX);
 }
@@ -12687,7 +12693,7 @@ static RValue builtin_layer_sprite_get_yscale(VMContext* ctx, RValue* args, MAYB
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(1.0);
     return RValue_makeReal((GMLReal) el->spriteElement->scaleY);
 }
@@ -12696,7 +12702,7 @@ static RValue builtin_layer_sprite_get_speed(VMContext* ctx, RValue* args, MAYBE
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(0.0);
     return RValue_makeReal((GMLReal) el->spriteElement->animationSpeed);
 }
@@ -12705,7 +12711,7 @@ static RValue builtin_layer_sprite_get_index(VMContext* ctx, RValue* args, MAYBE
     Runner* runner = ctx->runner;
     int32_t id = RValue_toInt32(args[0]);
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, nullptr);
-    if (el == nullptr || el->type != RuntimeLayerElementType_Sprite || el->spriteElement == nullptr)
+    if (!isValidLayerSpriteElement(el))
         return RValue_makeReal(0.0);
     return RValue_makeReal((GMLReal) el->spriteElement->frameIndex);
 }
@@ -12716,7 +12722,7 @@ static RValue builtin_layer_sprite_destroy(VMContext* ctx, RValue* args, MAYBE_U
 
     RuntimeLayer* owningLayer = nullptr;
     RuntimeLayerElement* el = Runner_findLayerElementById(runner, id, &owningLayer);
-    if (el == nullptr || owningLayer == nullptr || el->type != RuntimeLayerElementType_Sprite)
+    if (!isValidLayerSpriteElement(el) || owningLayer == nullptr)
         return RValue_makeUndefined();
 
     if (el->spriteElement != nullptr) {
