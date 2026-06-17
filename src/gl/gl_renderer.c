@@ -138,8 +138,6 @@ static void flushBatch(GLRenderer* gl) {
         GLShaderUniform* uniform = findShaderUniformByName(shader, "gm_BaseTexture");
         if (uniform != nullptr)
             glActiveTexture(GL_TEXTURE0 + uniform->samplerSlot);
-        else
-            fprintf(stderr, "GL: Shader uniform 'gm_BaseTexture' not found!\n");
         glBindTexture(GL_TEXTURE_2D, gl->currentTextureId);
     } else {
         glActiveTexture(GL_TEXTURE1);
