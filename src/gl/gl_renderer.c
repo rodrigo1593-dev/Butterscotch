@@ -1760,8 +1760,6 @@ static void glDrawSurface(Renderer* renderer, int32_t surfaceID, int32_t srcLeft
 
     if (0 > srcWidth) { srcLeft = 0; srcTop = 0; srcWidth = texW; srcHeight = texH; }
 
-    flushIfNeededAndSetActiveState(gl, BATCHTYPE_QUAD, texId);
-
     // Texture is bottom-up in GL; GML src is top-down, so flip V.
     float u0 = (float) srcLeft / (float) texW;
     float u1 = (float) (srcLeft + srcWidth) / (float) texW;
@@ -1786,21 +1784,7 @@ static void glDrawSurface(Renderer* renderer, int32_t surfaceID, int32_t srcLeft
     float g = (float) BGR_G(color) / 255.0f;
     float b = (float) BGR_B(color) / 255.0f;
 
-    float* verts = gl->vertexData + gl->batchCount * VERTICES_PER_QUAD * FLOATS_PER_VERTEX;
-
-    verts[0] = x0; verts[1] = y0; verts[2] = u0; verts[3] = v0;
-    verts[4] = r;  verts[5] = g;  verts[6] = b;  verts[7] = alpha;
-
-    verts[8]  = x1; verts[9]  = y1; verts[10] = u1; verts[11] = v0;
-    verts[12] = r;  verts[13] = g;  verts[14] = b;  verts[15] = alpha;
-
-    verts[16] = x2; verts[17] = y2; verts[18] = u1; verts[19] = v1;
-    verts[20] = r;  verts[21] = g;  verts[22] = b;  verts[23] = alpha;
-
-    verts[24] = x3; verts[25] = y3; verts[26] = u0; verts[27] = v1;
-    verts[28] = r;  verts[29] = g;  verts[30] = b;  verts[31] = alpha;
-
-    gl->batchCount++;
+    emitTexturedQuad(gl, texId, x0, y0, x1, y1, x2, y2, x3, y3, u0, v0, u1, v1, r, g, b, alpha);
 }
 
 static int32_t glCreateSpriteFromSurface(Renderer* renderer, int32_t surfaceID, int32_t x, int32_t y, int32_t w, int32_t h, bool removeback, bool smooth, int32_t xorig, int32_t yorig) {
