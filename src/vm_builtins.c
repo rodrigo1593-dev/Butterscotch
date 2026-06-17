@@ -13265,7 +13265,7 @@ static RValue builtin_path_add(VMContext* ctx, MAYBE_UNUSED RValue* args, MAYBE_
     memset(p, 0, sizeof(GamePath));
     p->name = "";
     p->isSmooth = false;
-    p->isClosed = false;
+    p->isClosed = true;
     p->precision = 4;
     p->pointCount = 0;
     p->points = nullptr;
