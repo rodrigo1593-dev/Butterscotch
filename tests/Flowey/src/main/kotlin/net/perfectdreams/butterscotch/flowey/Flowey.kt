@@ -30,7 +30,7 @@ class Flowey : CliktCommand() {
 
         testLoop@for (test in testSuiteConfig.tests) {
             if (test.commercialGame && skipCommercialGames) {
-                testResults[test.name] = TestResult(Instant.now(), 0, emptyList(), emptyList()).apply { state = TestResult.State.SKIPPED }
+                testResults[test.name] = TestResult(Instant.now(), 0, emptyList(), emptyList()).apply { state = TestResult.State.Skipped }
                 continue
             }
             println("Executing \"${test.name}\"")
@@ -70,25 +70,33 @@ class Flowey : CliktCommand() {
             result.endedAt = Instant.now()
             testResults[test.name] = result
 
-            if (process.exitValue() != 0)
+            if (process.exitValue() != 0) {
+                result.state = TestResult.State.Failure("Exit Status is not 0!")
                 continue@testLoop
+            }
 
             for (pack in test.expectedStdoutOutput) {
-                if (stdoutLines.windowed(pack.size).indexOf(pack) == -1)
+                if (stdoutLines.windowed(pack.size).indexOf(pack) == -1) {
+                    result.state = TestResult.State.Failure("Stdout does not contain required lines!")
                     continue@testLoop
+                }
             }
 
             for (pack in test.expectedStderrOutput) {
-                if (stderrLines.windowed(pack.size).indexOf(pack) == -1)
+                if (stderrLines.windowed(pack.size).indexOf(pack) == -1) {
+                    result.state = TestResult.State.Failure("Stderr does not contain required lines!")
                     continue@testLoop
+                }
             }
 
             for (pack in test.expectedScreenshots) {
                 val expected = File(testSuite.parentFile, pack.expected)
                 val actual = File(testSuite.parentFile, pack.actual)
 
-                if (!expected.exists() || !actual.exists())
+                if (!expected.exists() || !actual.exists()) {
+                    result.state = TestResult.State.Failure("Expected or actual image does not exist!")
                     continue@testLoop
+                }
 
                 val expectedImage = ImageIO.read(expected)
                 val actualImage = ImageIO.read(actual)
@@ -101,16 +109,18 @@ class Flowey : CliktCommand() {
                         val expectedPixel = expectedImage.getRGB(x, y)
                         val actualPixel = actualImage.getRGB(x, y)
 
-                        if (expectedPixel != actualPixel)
+                        if (expectedPixel != actualPixel) {
+                            result.state = TestResult.State.Failure("Pixel ($x, $y) is different!")
                             continue@testLoop
+                        }
                     }
                 }
             }
 
-            result.state = TestResult.State.SUCCESS
+            result.state = TestResult.State.Success
         }
 
-        val failedTests = testResults.filter { it.value.state == TestResult.State.FAILURE }
+        val failedTests = testResults.filter { it.value.state is TestResult.State.Failure }
 
         val summary = buildString {
             appendLine("# \uD83E\uDDEA Butterscotch Test Results")
@@ -119,9 +129,10 @@ class Flowey : CliktCommand() {
             appendLine("| - | - | - |")
             for ((name, result) in testResults.entries) {
                 val emoji = when (result.state) {
-                    TestResult.State.SUCCESS -> "✅"
-                    TestResult.State.FAILURE -> "🚫"
-                    TestResult.State.SKIPPED -> "⚠️"
+                    TestResult.State.Success -> "✅"
+                    is TestResult.State.Failure -> "🚫"
+                    TestResult.State.Skipped -> "⚠️"
+                    TestResult.State.Unknown -> "\uD83E\uDD37"
                 }
                 appendLine("| $name | ${result.endedAt?.let { formatDuration(result.startedAt, it) } ?: "N/A"} | $emoji |")
             }
@@ -131,6 +142,7 @@ class Flowey : CliktCommand() {
                 for ((name, result) in failedTests) {
                     appendLine()
                     appendLine("<details><summary>🚫 <code>${name}</code></summary>")
+                    appendLine("**Reason:** ${(result.state as TestResult.State.Failure).reason}")
                     appendLine()
                     appendLine("**Exit Code:** ${result.exitCode}")
                     appendLine()
@@ -173,13 +185,16 @@ class Flowey : CliktCommand() {
         var stdoutLines: List<String>,
         var stderrLines: List<String>
     ) {
-        var state = State.FAILURE
+        var state: State = State.Unknown
         var endedAt: Instant? = null
 
-        enum class State {
-            SUCCESS,
-            FAILURE,
-            SKIPPED
+        sealed class State {
+            object Success : State()
+            data class Failure(
+                val reason: String
+            ) : State()
+            object Skipped : State()
+            object Unknown : State()
         }
     }
 }
