@@ -146,6 +146,7 @@ class Flowey : CliktCommand() {
                 for ((name, result) in failedTests) {
                     appendLine()
                     appendLine("<details><summary>🚫 <code>${name}</code></summary>")
+                    appendLine()
                     appendLine("**Reason:** ${(result.state as TestResult.State.Failure).reason}")
                     appendLine()
                     appendLine("**Exit Code:** ${result.exitCode}")
