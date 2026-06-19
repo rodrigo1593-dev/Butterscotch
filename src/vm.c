@@ -3632,6 +3632,12 @@ RValue VM_executeCode(VMContext* ctx, int32_t codeIndex) {
     ctx->localVars = nullptr;
     ctx->localVarCount = 0;
 
+    // Reset all values in the stack (see issue #137)
+    repeat(ctx->stack.top, i) {
+        RValue_free(&ctx->stack.slots[i]);
+    }
+    ctx->stack.top = 0;
+
     return result;
 }
 
@@ -3656,6 +3662,8 @@ RValue VM_callCodeIndex(VMContext* ctx, int32_t codeIndex, RValue* args, int32_t
     frame.parent = ctx->callStack;
     ctx->callStack = &frame;
     ctx->callDepth++;
+
+    int32_t storedStackTop = ctx->stack.top;
 
     // Set up callee
     ctx->bytecodeBase = ctx->dataWin->bytecodeBuffer + (code->bytecodeAbsoluteOffset - ctx->dataWin->bytecodeBufferBase);
@@ -3732,6 +3740,12 @@ RValue VM_callCodeIndex(VMContext* ctx, int32_t codeIndex, RValue* args, int32_t
     ctx->savearefBalance = saved->savedSavearefBalance;
     ctx->callStack = saved->parent;
     ctx->callDepth--;
+
+    // Reset all values in the stack (see issue #137)
+    repeat(ctx->stack.top - storedStackTop, i) {
+        RValue_free(&ctx->stack.slots[storedStackTop + i]);
+    }
+    ctx->stack.top = storedStackTop;
 
     return result;
 }
