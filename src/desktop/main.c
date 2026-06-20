@@ -1,3 +1,5 @@
+#include <ctype.h>
+
 #include "data_win.h"
 #include "vm.h"
 
@@ -149,6 +151,7 @@ typedef struct {
     bool traceFrames;
     bool printRooms;
     bool printObjects;
+    bool printShaders;
     bool printDeclaredFunctions;
     bool printUnknownFunctions;
     int exitAtFrame;
@@ -316,6 +319,7 @@ static void printUsage(const char *argv0) {
 #endif
         "    --print-rooms                          - Print all rooms in the game and exit\n"
         "    --print-objects                        - Print all objects in the game and exit\n"
+        "    --print-shaders                        - Print all shaders in the game and exit\n"
         "    --print-declared-functions             - Print all declared functions in the game and exit\n"
         "    --print-unknown-functions              - Print all unknown functions used by the game and exit\n"
         "    --trace-variable-reads                 - Trace variable reads\n"
@@ -372,6 +376,7 @@ static void parseCommandLineArgs(CommandLineArgs* args, int argc, char* argv[]) 
         {"headless",            no_argument,       nullptr, 'h'},
         {"print-rooms", no_argument,               nullptr, 'r'},
         {"print-objects", no_argument,             nullptr, 'b'},
+        {"print-shaders", no_argument,               nullptr, 998},
         {"print-declared-functions", no_argument,  nullptr, 'p'},
         {"print-unknown-functions", no_argument, nullptr, 'u'},
         {"trace-variable-reads", required_argument,  nullptr, 'R'},
@@ -477,6 +482,10 @@ static void parseCommandLineArgs(CommandLineArgs* args, int argc, char* argv[]) 
             case 'b':
                 args->printObjects = true;
                 break;
+            case 998: {
+                args->printShaders = true;
+                break;
+            }
             case 'p':
                 args->printDeclaredFunctions = true;
                 break;
@@ -875,6 +884,37 @@ static void onCrashSignal(int sig) {
 }
 #endif
 
+char* collapseNewlines(const char *input) {
+    if (input == nullptr) {
+        return nullptr;
+    }
+
+    size_t len = strlen(input);
+    char *result = malloc(len + 1);
+    if (result == nullptr) {
+        return nullptr;
+    }
+
+    size_t j = 0;
+    bool isNewline = false;
+    repeat(len, i) {
+        if (input[i] == '\n' || input[i] == '\r') {
+            if (isNewline)
+                continue;
+
+            isNewline = true;
+            result[j++] = '\n';
+            continue;
+        } else {
+            isNewline = false;
+        }
+        result[j++] = input[i];
+    }
+    result[j] = '\0';
+
+    return result;
+}
+
 // ===[ MAIN ]===
 int main(int argc, char* argv[]) {
     setbuf(stderr, NULL);
@@ -1041,6 +1081,34 @@ int main(int argc, char* argv[]) {
                         printf("      Actions: %u\n", event->actionCount);
                     }
                 }
+            }
+            VM_free(vm);
+            DataWin_free(dataWin);
+            return 0;
+        }
+
+        if (args.printShaders) {
+            forEachIndexed(Shader, shader, idx, dataWin->shdr.shaders, dataWin->shdr.count) {
+                printf("[%u] %s:\n", idx, shader->name);
+                printf("GLSL Vertex Shader:\n");
+                char* glslVertex = collapseNewlines(shader->glsl_Vertex);
+                printf("%s\n", glslVertex);
+                free(glslVertex);
+
+                printf("GLSL Fragment Shader:\n");
+                char* glslFragment = collapseNewlines(shader->glsl_Fragment);
+                printf("%s\n", glslFragment);
+                free(glslFragment);
+
+                printf("GLSL ES Vertex Shader:\n");
+                char* glslESVertex = collapseNewlines(shader->glslES_Vertex);
+                printf("%s\n", glslESVertex);
+                free(glslESVertex);
+
+                printf("GLSL ES Fragment Shader:\n");
+                char* glslESFragment = collapseNewlines(shader->glslES_Fragment);
+                printf("%s\n", glslESFragment);
+                free(glslESFragment);
             }
             VM_free(vm);
             DataWin_free(dataWin);
